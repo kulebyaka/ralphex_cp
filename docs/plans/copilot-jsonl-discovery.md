@@ -47,12 +47,30 @@ Capture, analyze, and document the JSONL event schema emitted by `copilot --outp
 **Files:**
 - Create: `pkg/executor/testdata/copilot_fixtures/tool_use.jsonl`
 
-- [ ] Create a temp directory: `mkdir -p /tmp/copilot-discovery && cd /tmp/copilot-discovery && git init && echo "package main" > main.go && git add . && git commit -m "init"`
-- [ ] Run from that directory: `copilot --model claude-opus-4-6 --output-format json --allow-all --no-ask-user -p "Add a function called Add(a, b int) int to main.go and write a test for it" 2>&1 | tee /tmp/copilot-tooluse.jsonl`
-- [ ] Identify event types for: file reads, file writes/edits, bash command execution, tool approval (if any with --allow-all)
-- [ ] Note how tool invocations vs tool results vs assistant text are distinguished in the JSONL
-- [ ] Save fixture to `pkg/executor/testdata/copilot_fixtures/tool_use.jsonl`
-- [ ] Document tool-related event types and their field structure
+- [x] Create a temp directory: `mkdir -p /tmp/copilot-discovery && cd /tmp/copilot-discovery && git init && echo "package main" > main.go && git add . && git commit -m "init"`
+- [x] Run from that directory: `copilot --model claude-opus-4-6 --output-format json --allow-all --no-ask-user -p "Add a function called Add(a, b int) int to main.go and write a test for it" 2>&1 | tee /tmp/copilot-tooluse.jsonl` (used default model — claude-opus-4-6 not available on this account; default model produced Claude-based output with reasoning and tool use)
+- [x] Identify event types for: file reads, file writes/edits, bash command execution, tool approval (if any with --allow-all). FINDINGS:
+  - File reads: `tool.execution_start` with toolName="view", `tool.execution_complete` with result containing file content
+  - File writes/edits: `tool.execution_start` with toolName="edit" (for modifications) or "create" (for new files), `tool.execution_complete` with result containing diff in detailedContent
+  - Bash execution: `tool.execution_start` with toolName="bash", arguments include command and description; `tool.execution_complete` result includes stdout and exit code marker `<exited with exit code N>`
+  - Tool approval: with `--allow-all`, no approval events are emitted — tools execute directly
+  - Additional tools: `report_intent` (logs intent, internal copilot tool)
+  - New event: `session.info` (ephemeral) with infoType="file_created" — emitted alongside tool.execution_complete for file creation
+- [x] Note how tool invocations vs tool results vs assistant text are distinguished in the JSONL. FINDINGS:
+  - Tool invocations: declared in `assistant.message.data.toolRequests[]` array (each has toolCallId, name, arguments, type="function")
+  - Tool starts: `tool.execution_start` events (toolCallId, toolName, arguments) — one per tool call
+  - Tool results: `tool.execution_complete` events (toolCallId, model, success:bool, result:{content, detailedContent}, toolTelemetry)
+  - Assistant text: `assistant.message_delta` (streaming, ephemeral) and `assistant.message` (complete, with content field)
+  - Turn boundaries: `assistant.turn_start`/`assistant.turn_end` wrap each assistant turn (may contain text + tool calls)
+  - Multiple tools can execute in parallel within the same turn
+  - Each turn cycle: turn_start -> [reasoning_delta*] -> [message_delta*] -> message (with toolRequests) -> [tool.execution_start, tool.execution_complete]* -> turn_end
+- [x] Save fixture to `pkg/executor/testdata/copilot_fixtures/tool_use.jsonl` (118 lines, 6 turns, 7 tool invocations: report_intent, view x2, edit, create, bash x2)
+- [x] Document tool-related event types and their field structure. OBSERVATIONS:
+  - tool.execution_start: {toolCallId, toolName, arguments:{...tool-specific...}}
+  - tool.execution_complete: {toolCallId, model (e.g. "claude-haiku-4.5"), interactionId, success:bool, result:{content (short), detailedContent (full diff/output)}, toolTelemetry:{properties:{command, fileExtension, ...}, metrics:{resultLength, linesAdded, linesRemoved, ...}}}
+  - session.info: {infoType (e.g. "file_created"), message (file path)} — ephemeral, emitted for file operations
+  - assistant.message.toolRequests[]: [{toolCallId, name, arguments:{...}, type:"function"}] — tool call declarations
+  - result event (session end): unchanged from simple_text — includes exitCode, sessionId, usage with codeChanges:{linesAdded, linesRemoved, filesModified:[]}
 
 ### Task 3: Capture JSONL output with signals and error scenarios
 
