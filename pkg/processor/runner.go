@@ -401,6 +401,16 @@ func (r *Runner) runTaskPhase(ctx context.Context) error {
 		}
 
 		retryCount = 0
+
+		// fallback completion detection: if model didn't emit signal but all checkboxes are done, treat as completed.
+		// this handles cases where the model marks tasks [x] and describes completion in plain text
+		// without outputting the exact <<<RALPHEX:ALL_TASKS_DONE>>> signal.
+		if !r.hasUncompletedTasks() {
+			r.log.Print("all plan checkboxes completed (no signal received, detected via plan file)")
+			r.log.PrintRaw("\nall tasks completed, starting code review...\n")
+			return nil
+		}
+
 		// continue with same prompt - it reads from plan file each time
 		if err := r.sleepWithContext(ctx, r.iterationDelay); err != nil {
 			return fmt.Errorf("interrupted: %w", err)
