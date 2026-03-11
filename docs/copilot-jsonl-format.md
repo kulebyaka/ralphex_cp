@@ -87,7 +87,7 @@ Streaming reasoning token (Claude models only, not emitted by GPT models). Ephem
 
 ### assistant.reasoning
 
-Complete reasoning block (Claude models only). Ephemeral. Emitted after all reasoning_delta events.
+Complete reasoning block (Claude models only). Ephemeral. Emitted after `assistant.message`, not immediately after reasoning_delta events (see Streaming Model section for exact ordering).
 
 ```json
 {
@@ -462,7 +462,7 @@ Without `--allow-all`, tools that require approval emit `tool.execution_complete
 - `error.message: "Permission denied and could not request permission from user"`
 - `error.code: "denied"`
 
-No special "approval" or "permission" event types exist. The JSONL structure is identical — only the `success` and `error` fields on `tool.execution_complete` differ.
+Permissions are per-tool and per-command, not all-or-nothing. In testing, read-only `bash` commands (e.g., `ls -la`) succeeded without `--allow-all`, while `create` and write-mode `bash` commands (e.g., `mkdir`, `cat >`) were denied. No special "approval" or "permission" event types exist. The JSONL structure is identical — only the `success` and `error` fields on `tool.execution_complete` differ.
 
 For ralphex: always pass `--allow-all` in non-interactive mode. If tool denials appear, detect via `tool.execution_complete.data.error.code == "denied"`. Note: only `--allow-all` was verified during discovery; check `copilot --help` for the canonical flag name.
 
