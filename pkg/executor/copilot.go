@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"os"
+	"runtime"
 	"strings"
 
 	"github.com/kulebyaka/ralphex_cp/pkg/status"
@@ -71,7 +73,26 @@ func (e *CopilotExecutor) run(ctx context.Context, prompt, model string) Result 
 		args = append(args, "--model", model)
 	}
 
-	args = append(args, "-p", prompt)
+	// on windows, command line length is limited to ~8191 characters.
+	// write long prompts to a temp file and pass the file path with @ prefix.
+	// copilot CLI supports @filepath syntax for -p flag.
+	if runtime.GOOS == "windows" && len(prompt) > 4000 {
+		tmpFile, tmpErr := os.CreateTemp("", "ralphex-prompt-*.txt")
+		if tmpErr != nil {
+			return Result{Error: fmt.Errorf("create prompt file: %w", tmpErr)}
+		}
+		tmpPath := tmpFile.Name()
+		defer os.Remove(tmpPath) //nolint:errcheck // cleanup temp file
+
+		if _, writeErr := tmpFile.WriteString(prompt); writeErr != nil {
+			tmpFile.Close()
+			return Result{Error: fmt.Errorf("write prompt file: %w", writeErr)}
+		}
+		tmpFile.Close()
+		args = append(args, "-p", "@"+tmpPath)
+	} else {
+		args = append(args, "-p", prompt)
+	}
 
 	runner := e.cmdRunner
 	if runner == nil {
