@@ -17,6 +17,7 @@ which ralphex
 - **macOS (Homebrew)**: `brew install kulebyaka/apps/ralphex`
 - **Linux (Debian/Ubuntu)**: download `.deb` from https://github.com/kulebyaka/ralphex_cp/releases
 - **Linux (RHEL/Fedora)**: download `.rpm` from https://github.com/kulebyaka/ralphex_cp/releases
+- **Windows**: download `.zip` from https://github.com/kulebyaka/ralphex_cp/releases
 - **Any platform with Go**: `go install github.com/kulebyaka/ralphex_cp/cmd/ralphex@latest`
 
 Proceed with plan creation regardless, but remind user to install before execution.

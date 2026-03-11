@@ -20,6 +20,7 @@ which ralphex
 - **macOS (Homebrew)**: `brew install kulebyaka/apps/ralphex`
 - **Linux (Debian/Ubuntu)**: download `.deb` from https://github.com/kulebyaka/ralphex_cp/releases
 - **Linux (RHEL/Fedora)**: download `.rpm` from https://github.com/kulebyaka/ralphex_cp/releases
+- **Windows**: download `.zip` from https://github.com/kulebyaka/ralphex_cp/releases
 - **Any platform with Go**: `go install github.com/kulebyaka/ralphex_cp/cmd/ralphex@latest`
 
 Use AskUserQuestion to confirm installation method, then guide through it. **Do not proceed until `which ralphex` succeeds.**
@@ -39,9 +40,9 @@ Use AskUserQuestion:
   - label: "Full (Recommended)"
     description: "Task execution + Claude review + Codex loop + final Claude review"
   - label: "Review"
-    description: "Skip tasks, run full review pipeline (Claude + Codex + Claude)"
-  - label: "Codex-only"
-    description: "Skip tasks and first Claude review, run only Codex loop"
+    description: "Skip tasks, run full review pipeline (review + external review + final review)"
+  - label: "External-only"
+    description: "Skip tasks and first review, run only external review loop"
 
 ## Step 3: Plan Selection (if no argument provided)
 
@@ -82,7 +83,7 @@ Build and run the command:
 ```bash
 ralphex \
   [--review]              # if user selected "Review" mode
-  [--codex-only]          # if user selected "Codex-only" mode
+  [--external-only]       # if user selected "External-only" mode
   [--max-iterations N]    # from user selection (25, 50, or 100)
   [plan-file]             # from argument OR plan selection (omit if "None" selected)
 ```
@@ -92,10 +93,10 @@ Run using Bash tool with `run_in_background: true`. **Save the task_id from the 
 **Determine progress filename** based on mode and plan selection:
 - Full mode + plan: `.ralphex/progress/progress-{plan-stem}.txt`
 - Review mode + plan: `.ralphex/progress/progress-{plan-stem}-review.txt`
-- Codex-only + plan: `.ralphex/progress/progress-{plan-stem}-codex.txt`
+- External-only + plan: `.ralphex/progress/progress-{plan-stem}-codex.txt`
 - Full mode + no plan: `.ralphex/progress/progress.txt`
 - Review mode + no plan: `.ralphex/progress/progress-review.txt`
-- Codex-only + no plan: `.ralphex/progress/progress-codex.txt`
+- External-only + no plan: `.ralphex/progress/progress-codex.txt`
 
 Where `{plan-stem}` is the plan filename without extension (e.g., `fix-bugs` from `fix-bugs.md`).
 
@@ -134,7 +135,7 @@ If user explicitly asks "check ralphex", "ralphex status", or "how is ralphex do
 **If process still running:**
 - Report current phase from progress file:
   - "task iteration N" → Task Execution phase
-  - "codex iteration N" → Codex External Review phase
+  - "codex iteration N" → External Review phase
   - "review pass 1/2" → Claude Review phase
 - Show recent activity lines
 

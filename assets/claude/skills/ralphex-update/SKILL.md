@@ -15,6 +15,7 @@ which ralphex
 
 **If not found**, guide installation:
 - **macOS (Homebrew)**: `brew install kulebyaka/apps/ralphex`
+- **Windows**: download `.zip` from https://github.com/kulebyaka/ralphex_cp/releases
 - **Any platform with Go**: `go install github.com/kulebyaka/ralphex_cp/cmd/ralphex@latest`
 
 **Do not proceed until `which ralphex` succeeds.**
