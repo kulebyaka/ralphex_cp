@@ -414,7 +414,7 @@ Read `assistant.message_delta` events for real-time text output:
 - Field: `data.deltaContent`
 - Accumulate deltas with matching `data.messageId` for the current message
 - Ignore `assistant.reasoning_delta` (ephemeral internal reasoning, not user-facing output)
-- For complete text (non-streaming), read `assistant.message.data.content`
+- IMPORTANT: `assistant.message_delta` events may be absent even when the turn has text content (observed in multi-turn conversations). Always read `assistant.message.data.content` as the authoritative source for complete turn text, not just a fallback
 
 ### Signal Detection → scan for <<<RALPHEX:...>>>
 
@@ -473,9 +473,11 @@ Unicode characters (emoji, CJK, mathematical symbols) pass through JSONL correct
 ### Empty or near-empty responses
 
 When the model produces minimal output, the event sequence remains structurally identical:
-- `user.message` → `assistant.turn_start` → (optional reasoning) → `assistant.message_delta`(s) → `assistant.message` → `assistant.turn_end` → `result`
+- `user.message` → `assistant.turn_start` → (optional reasoning) → (optional `assistant.message_delta`(s)) → `assistant.message` → `assistant.turn_end` → `result`
+- `assistant.message_delta` events may be absent even when `assistant.message.data.content` is non-empty (observed in multi-turn conversations where short responses skip streaming deltas)
 - The `assistant.message.data.content` may be an empty string `""` (observed when only tool calls are made with no text)
 - Zero-delta messages are valid — `assistant.message` is always emitted even with empty content
+- For parsing: treat `assistant.message.data.content` as the authoritative text source, not just a fallback for deltas
 
 ### CLI argument errors (no JSONL)
 
