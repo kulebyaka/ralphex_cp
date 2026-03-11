@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/umputun/ralphex/pkg/status"
+	"github.com/kulebyaka/ralphex_cp/pkg/status"
 )
 
 // failingReader is a reader that always returns an error.

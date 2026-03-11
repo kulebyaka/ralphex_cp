@@ -8,7 +8,7 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/umputun/ralphex/pkg/status"
+	"github.com/kulebyaka/ralphex_cp/pkg/status"
 )
 
 //go:generate moq -out mocks/command_runner.go -pkg mocks -skip-ensure -fmt goimports . CommandRunner

@@ -17,15 +17,15 @@ import (
 
 	"github.com/jessevdk/go-flags"
 
-	"github.com/umputun/ralphex/pkg/config"
-	"github.com/umputun/ralphex/pkg/git"
-	"github.com/umputun/ralphex/pkg/input"
-	"github.com/umputun/ralphex/pkg/notify"
-	"github.com/umputun/ralphex/pkg/plan"
-	"github.com/umputun/ralphex/pkg/processor"
-	"github.com/umputun/ralphex/pkg/progress"
-	"github.com/umputun/ralphex/pkg/status"
-	"github.com/umputun/ralphex/pkg/web"
+	"github.com/kulebyaka/ralphex_cp/pkg/config"
+	"github.com/kulebyaka/ralphex_cp/pkg/git"
+	"github.com/kulebyaka/ralphex_cp/pkg/input"
+	"github.com/kulebyaka/ralphex_cp/pkg/notify"
+	"github.com/kulebyaka/ralphex_cp/pkg/plan"
+	"github.com/kulebyaka/ralphex_cp/pkg/processor"
+	"github.com/kulebyaka/ralphex_cp/pkg/progress"
+	"github.com/kulebyaka/ralphex_cp/pkg/status"
+	"github.com/kulebyaka/ralphex_cp/pkg/web"
 )
 
 // opts holds all command-line options.

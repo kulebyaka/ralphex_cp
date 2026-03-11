@@ -15,8 +15,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/umputun/ralphex/pkg/progress"
-	"github.com/umputun/ralphex/pkg/status"
+	"github.com/kulebyaka/ralphex_cp/pkg/progress"
+	"github.com/kulebyaka/ralphex_cp/pkg/status"
 )
 
 // MaxCompletedSessions is the maximum number of completed sessions to retain.

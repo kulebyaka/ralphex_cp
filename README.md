@@ -3,9 +3,9 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/umputun/ralphex/actions/workflows/ci.yml"><img src="https://github.com/umputun/ralphex/actions/workflows/ci.yml/badge.svg" alt="build"></a>
-  <a href="https://codecov.io/gh/umputun/ralphex"><img src="https://codecov.io/gh/umputun/ralphex/graph/badge.svg?token=5AH7YL5PSG" alt="codecov"></a>
-  <a href="https://goreportcard.com/report/github.com/umputun/ralphex"><img src="https://goreportcard.com/badge/github.com/umputun/ralphex?v=2" alt="Go Report Card"></a>
+  <a href="https://github.com/kulebyaka/ralphex_cp/actions/workflows/ci.yml"><img src="https://github.com/kulebyaka/ralphex_cp/actions/workflows/ci.yml/badge.svg" alt="build"></a>
+  <a href="https://codecov.io/gh/kulebyaka/ralphex_cp"><img src="https://codecov.io/gh/kulebyaka/ralphex_cp/graph/badge.svg?token=5AH7YL5PSG" alt="codecov"></a>
+  <a href="https://goreportcard.com/report/github.com/kulebyaka/ralphex_cp"><img src="https://goreportcard.com/badge/github.com/kulebyaka/ralphex_cp?v=2" alt="Go Report Card"></a>
 </p>
 
 <h2 align="center">Autonomous plan execution with GitHub Copilot CLI</h2>
@@ -110,7 +110,7 @@ Launches 5 review agents **in parallel** via Copilot CLI Task tool:
 
 The coding model verifies findings, fixes confirmed issues, and commits.
 
-*[Default agents](https://github.com/umputun/ralphex/tree/master/pkg/config/defaults/agents) provide common, language-agnostic review steps. They can be customized and tuned for your specific needs, languages, and workflows. See [Customization](#customization) for details.*
+*[Default agents](https://github.com/kulebyaka/ralphex_cp/tree/master/pkg/config/defaults/agents) provide common, language-agnostic review steps. They can be customized and tuned for your specific needs, languages, and workflows. See [Customization](#customization) for details.*
 
 ### Phase 3: External Review (optional)
 
@@ -227,25 +227,45 @@ After plan creation, you can choose to continue with immediate execution or exit
 ### From source
 
 ```bash
-go install github.com/umputun/ralphex/cmd/ralphex@latest
+go install github.com/kulebyaka/ralphex_cp/cmd/ralphex@latest
 ```
 
 ### Using Homebrew
 
 ```bash
-brew install umputun/apps/ralphex
+brew install kulebyaka/apps/ralphex
 ```
 
 ### From releases
 
-Download the appropriate binary from [releases](https://github.com/umputun/ralphex/releases).
+Download the appropriate binary from [releases](https://github.com/kulebyaka/ralphex_cp/releases).
+
+### Windows
+
+Download `ralphex_<version>_windows_amd64.zip` (or `arm64`) from [releases](https://github.com/kulebyaka/ralphex_cp/releases), extract, and add to PATH:
+
+```powershell
+# PowerShell — download and extract to a directory in PATH
+Invoke-WebRequest -Uri "https://github.com/kulebyaka/ralphex_cp/releases/latest/download/ralphex_0.1.0_windows_amd64.zip" -OutFile ralphex.zip
+Expand-Archive ralphex.zip -DestinationPath "$env:LOCALAPPDATA\ralphex"
+# add to PATH (persistent for current user)
+[Environment]::SetEnvironmentVariable("Path", "$env:LOCALAPPDATA\ralphex;" + [Environment]::GetEnvironmentVariable("Path", "User"), "User")
+```
+
+Or install with Go:
+
+```powershell
+go install github.com/kulebyaka/ralphex_cp/cmd/ralphex@latest
+```
+
+**Windows limitations:** process group signals not available (child processes won't be cleanly killed), file locking disabled (no active session detection), manual break via Ctrl+\ not available. See [Platform Support](#platform-support) for details.
 
 ### Using Docker
 
 Download the wrapper script and install to PATH:
 
 ```bash
-curl -sL https://raw.githubusercontent.com/umputun/ralphex/master/scripts/ralphex-dk.sh -o /usr/local/bin/ralphex
+curl -sL https://raw.githubusercontent.com/kulebyaka/ralphex_cp/master/scripts/ralphex-dk.sh -o /usr/local/bin/ralphex
 chmod +x /usr/local/bin/ralphex
 ```
 
@@ -297,7 +317,7 @@ Then use `ralphex` as usual - it runs in a container with Copilot CLI pre-instal
 - Git config in `~/.gitconfig` (for commits)
 
 **Environment variables:**
-- `RALPHEX_IMAGE` - Docker image to use (default: `ghcr.io/umputun/ralphex-go:latest`)
+- `RALPHEX_IMAGE` - Docker image to use (default: `ghcr.io/kulebyaka/ralphex_cp-go:latest`)
 - `RALPHEX_PORT` - Port for web dashboard when using `--serve` (default: `8080`)
 - `RALPHEX_CONFIG_DIR` - Custom config directory (default: `~/.config/ralphex`). Overrides global config location for prompts, agents, and settings
 - `GITHUB_TOKEN` - GitHub token for Copilot CLI authentication (passed through to container)
@@ -343,8 +363,8 @@ Two images are published:
 
 | Image | Description |
 |-------|-------------|
-| `ghcr.io/umputun/ralphex:latest` | Base image with Copilot CLI and core tools |
-| `ghcr.io/umputun/ralphex-go:latest` | Go development (extends base with Go toolchain) |
+| `ghcr.io/kulebyaka/ralphex_cp:latest` | Base image with Copilot CLI and core tools |
+| `ghcr.io/kulebyaka/ralphex_cp-go:latest` | Go development (extends base with Go toolchain) |
 
 **Base image includes:**
 
@@ -371,13 +391,13 @@ Two images are published:
 
 **For Go projects**, use the `-go` image:
 ```bash
-RALPHEX_IMAGE=ghcr.io/umputun/ralphex-go:latest ralphex docs/plans/feature.md
+RALPHEX_IMAGE=ghcr.io/kulebyaka/ralphex_cp-go:latest ralphex docs/plans/feature.md
 ```
 
 **For other languages**, create a custom image by extending the base with your language toolchain. The Go image (`Dockerfile-go`) shows the pattern:
 
 ```dockerfile
-FROM ghcr.io/umputun/ralphex:latest
+FROM ghcr.io/kulebyaka/ralphex_cp:latest
 
 # install go from official distribution
 ARG GO_VERSION=1.26.0
@@ -396,7 +416,7 @@ RUN wget -qO- https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/inst
 
 Same approach for Rust, Java, or any other language:
 ```dockerfile
-FROM ghcr.io/umputun/ralphex:latest
+FROM ghcr.io/kulebyaka/ralphex_cp:latest
 
 # rust
 RUN apk add --no-cache rust cargo
@@ -796,7 +816,7 @@ notify_webhook_urls = https://hooks.example.com/notify
 
 Supported channels: `telegram`, `email`, `slack`, `webhook`, `custom` (script). Misconfigured channels are detected at startup.
 
-See [notifications documentation](https://github.com/umputun/ralphex/blob/master/docs/notifications.md) for setup guides, message format examples, and custom script integration.
+See [notifications documentation](https://github.com/kulebyaka/ralphex_cp/blob/master/docs/notifications.md) for setup guides, message format examples, and custom script integration.
 
 **Prompt customization:**
 
@@ -827,7 +847,7 @@ copilot_coding_model = claude-opus-4-6
 copilot_review_model = gpt-5.2-codex
 ```
 
-See [custom providers documentation](https://github.com/umputun/ralphex/blob/master/docs/custom-providers.md) for details on the JSONL output format and configuration.
+See [custom providers documentation](https://github.com/kulebyaka/ralphex_cp/blob/master/docs/custom-providers.md) for details on the JSONL output format and configuration.
 
 ### Configurable VCS Backend
 
@@ -838,9 +858,9 @@ ralphex can work with Mercurial repositories through the `vcs_command` config op
 vcs_command = ~/.config/ralphex/scripts/hg2git.sh
 ```
 
-A reference translation script is included at [`scripts/hg2git.sh`](https://github.com/umputun/ralphex/blob/master/scripts/hg2git.sh). It maps the ~15 git subcommands ralphex uses internally to Mercurial equivalents, with phase-based commit logic (amend on draft, commit on public). Requires bash 4.0+ (for associative arrays used in diff stats parsing).
+A reference translation script is included at [`scripts/hg2git.sh`](https://github.com/kulebyaka/ralphex_cp/blob/master/scripts/hg2git.sh). It maps the ~15 git subcommands ralphex uses internally to Mercurial equivalents, with phase-based commit logic (amend on draft, commit on public). Requires bash 4.0+ (for associative arrays used in diff stats parsing).
 
-You will also need to customise prompt files to replace git commands that the coding model executes as bash commands during reviews. See [Mercurial support documentation](https://github.com/umputun/ralphex/blob/master/docs/hg-support.md) for full setup instructions, prompt replacement examples, `.hgignore` setup, and known limitations.
+You will also need to customise prompt files to replace git commands that the coding model executes as bash commands during reviews. See [Mercurial support documentation](https://github.com/kulebyaka/ralphex_cp/blob/master/docs/hg-support.md) for full setup instructions, prompt replacement examples, `.hgignore` setup, and known limitations.
 
 <details markdown>
 <summary><b>FAQ</b></summary>
@@ -1015,10 +1035,10 @@ The ralphex CLI is the primary interface. Skills (`/ralphex`, `/ralphex-plan`, a
 
 ```bash
 # Add ralphex marketplace
-/plugin marketplace add umputun/ralphex
+/plugin marketplace add kulebyaka/ralphex_cp
 
 # Install the plugin
-/plugin install ralphex@umputun-ralphex
+/plugin install ralphex@kulebyaka-ralphex_cp
 ```
 
 Benefits: Auto-updates when marketplace refreshes (at startup).

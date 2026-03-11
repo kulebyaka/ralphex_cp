@@ -7,7 +7,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/umputun/ralphex/pkg/config"
+	"github.com/kulebyaka/ralphex_cp/pkg/config"
 )
 
 // agentRefPattern matches {{agent:name}} template syntax

@@ -13,6 +13,7 @@ builds:
     goos:
       - linux
       - darwin
+      - windows
     goarch:
       - amd64
       - arm64
@@ -33,9 +34,9 @@ nfpms:
     package_name: ralphex
     builds:
       - ralphex
-    vendor: umputun
-    homepage: https://github.com/umputun/ralphex
-    maintainer: umputun
+    vendor: kulebyaka
+    homepage: https://github.com/kulebyaka/ralphex_cp
+    maintainer: kulebyaka
     description: Autonomous plan execution with Claude Code
     license: MIT
     formats:
@@ -51,10 +52,10 @@ nfpms:
 
 brews:
   - repository:
-      owner: umputun
+      owner: kulebyaka
       name: homebrew-apps
     directory: Formula
-    homepage: https://github.com/umputun/ralphex
+    homepage: https://github.com/kulebyaka/ralphex_cp
     description: Autonomous plan execution with Claude Code
     license: MIT
     extra_install: |

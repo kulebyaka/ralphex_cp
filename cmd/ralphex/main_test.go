@@ -13,14 +13,14 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/umputun/ralphex/pkg/config"
-	"github.com/umputun/ralphex/pkg/git"
-	gitmocks "github.com/umputun/ralphex/pkg/git/mocks"
-	"github.com/umputun/ralphex/pkg/notify"
-	"github.com/umputun/ralphex/pkg/plan"
-	"github.com/umputun/ralphex/pkg/processor"
-	"github.com/umputun/ralphex/pkg/progress"
-	"github.com/umputun/ralphex/pkg/status"
+	"github.com/kulebyaka/ralphex_cp/pkg/config"
+	"github.com/kulebyaka/ralphex_cp/pkg/git"
+	gitmocks "github.com/kulebyaka/ralphex_cp/pkg/git/mocks"
+	"github.com/kulebyaka/ralphex_cp/pkg/notify"
+	"github.com/kulebyaka/ralphex_cp/pkg/plan"
+	"github.com/kulebyaka/ralphex_cp/pkg/processor"
+	"github.com/kulebyaka/ralphex_cp/pkg/progress"
+	"github.com/kulebyaka/ralphex_cp/pkg/status"
 )
 
 // testColors returns a Colors instance for testing.

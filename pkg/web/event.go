@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/tmaxmax/go-sse"
-	"github.com/umputun/ralphex/pkg/status"
+	"github.com/kulebyaka/ralphex_cp/pkg/status"
 )
 
 // EventType represents the type of event being streamed.

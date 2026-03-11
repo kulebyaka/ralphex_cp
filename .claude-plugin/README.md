@@ -12,8 +12,8 @@ This directory contains the Claude Code plugin configuration for ralphex.
 Users can install via the plugin marketplace:
 
 ```bash
-/plugin marketplace add umputun/ralphex
-/plugin install ralphex@umputun-ralphex
+/plugin marketplace add kulebyaka/ralphex_cp
+/plugin install ralphex@kulebyaka-ralphex_cp
 ```
 
 ## Versioning

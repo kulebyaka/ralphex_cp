@@ -13,8 +13,8 @@ import (
 	"github.com/fatih/color"
 	"golang.org/x/term"
 
-	"github.com/umputun/ralphex/pkg/config"
-	"github.com/umputun/ralphex/pkg/status"
+	"github.com/kulebyaka/ralphex_cp/pkg/config"
+	"github.com/kulebyaka/ralphex_cp/pkg/status"
 )
 
 // Colors holds all color configuration for output formatting.

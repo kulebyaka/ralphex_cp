@@ -1,8 +1,8 @@
 {
   "name": "ralphex",
   "owner": {
-    "name": "umputun",
-    "email": "umputun@gmail.com"
+    "name": "kulebyaka",
+    "email": "kulebyaka@users.noreply.github.com"
   },
   "plugins": [
     {
@@ -11,7 +11,7 @@
       "description": "Autonomous plan execution with Claude Code - task execution, monitoring, and plan creation",
       "version": "0.17.0",
       "author": {
-        "name": "umputun"
+        "name": "kulebyaka"
       }
     }
   ]

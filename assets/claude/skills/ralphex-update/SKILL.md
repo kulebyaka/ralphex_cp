@@ -14,8 +14,8 @@ which ralphex
 ```
 
 **If not found**, guide installation:
-- **macOS (Homebrew)**: `brew install umputun/apps/ralphex`
-- **Any platform with Go**: `go install github.com/umputun/ralphex/cmd/ralphex@latest`
+- **macOS (Homebrew)**: `brew install kulebyaka/apps/ralphex`
+- **Any platform with Go**: `go install github.com/kulebyaka/ralphex_cp/cmd/ralphex@latest`
 
 **Do not proceed until `which ralphex` succeeds.**
 

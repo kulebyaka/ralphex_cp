@@ -3,11 +3,11 @@
   "version": "0.17.0",
   "description": "Autonomous plan execution with Claude Code - task execution, monitoring, and plan creation",
   "author": {
-    "name": "umputun",
-    "email": "umputun@gmail.com"
+    "name": "kulebyaka",
+    "email": "kulebyaka@users.noreply.github.com"
   },
   "homepage": "https://ralphex.com",
-  "repository": "https://github.com/umputun/ralphex",
+  "repository": "https://github.com/kulebyaka/ralphex_cp",
   "license": "MIT",
   "keywords": [
     "automation",

@@ -26,7 +26,7 @@ Examples:
   ralphex-dk.sh --update-script
 
 Environment variables:
-  RALPHEX_IMAGE         Docker image (default: ghcr.io/umputun/ralphex-go:latest)
+  RALPHEX_IMAGE         Docker image (default: ghcr.io/kulebyaka/ralphex_cp-go:latest)
   RALPHEX_PORT          Web dashboard port with --serve (default: 8080)
   RALPHEX_EXTRA_ENV     Comma-separated env vars (VAR=value or VAR to inherit)
   RALPHEX_EXTRA_VOLUMES Comma-separated volume mounts (src:dst[:opts])
@@ -56,9 +56,9 @@ from types import FrameType
 from typing import Optional
 from urllib.request import urlopen
 
-DEFAULT_IMAGE = "ghcr.io/umputun/ralphex-go:latest"
+DEFAULT_IMAGE = "ghcr.io/kulebyaka/ralphex_cp-go:latest"
 DEFAULT_PORT = "8080"
-SCRIPT_URL = "https://raw.githubusercontent.com/umputun/ralphex/master/scripts/ralphex-dk.sh"
+SCRIPT_URL = "https://raw.githubusercontent.com/kulebyaka/ralphex_cp/master/scripts/ralphex-dk.sh"
 SENSITIVE_PATTERNS = ["KEY", "SECRET", "TOKEN", "PASSWORD", "PASSWD", "CREDENTIAL", "AUTH"]
 
 
@@ -72,7 +72,7 @@ def build_parser() -> argparse.ArgumentParser:
         allow_abbrev=False,
         epilog=textwrap.dedent("""\
             Environment variables:
-              RALPHEX_IMAGE         Docker image (default: ghcr.io/umputun/ralphex-go:latest)
+              RALPHEX_IMAGE         Docker image (default: ghcr.io/kulebyaka/ralphex_cp-go:latest)
               RALPHEX_PORT          Web dashboard port with --serve (default: 8080)
               RALPHEX_EXTRA_ENV     Comma-separated env vars (VAR=value or VAR)
               RALPHEX_EXTRA_VOLUMES Comma-separated volume mounts (src:dst[:opts])

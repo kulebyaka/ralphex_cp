@@ -13,11 +13,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/umputun/ralphex/pkg/config"
-	"github.com/umputun/ralphex/pkg/executor"
-	"github.com/umputun/ralphex/pkg/processor"
-	"github.com/umputun/ralphex/pkg/processor/mocks"
-	"github.com/umputun/ralphex/pkg/status"
+	"github.com/kulebyaka/ralphex_cp/pkg/config"
+	"github.com/kulebyaka/ralphex_cp/pkg/executor"
+	"github.com/kulebyaka/ralphex_cp/pkg/processor"
+	"github.com/kulebyaka/ralphex_cp/pkg/processor/mocks"
+	"github.com/kulebyaka/ralphex_cp/pkg/status"
 )
 
 // testAppConfig loads config with embedded defaults for testing.

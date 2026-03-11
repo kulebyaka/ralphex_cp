@@ -2,18 +2,18 @@
 
 Autonomous plan execution with GitHub Copilot CLI. Executes implementation plans task by task in fresh Copilot sessions, then runs multi-phase code reviews. Write a plan, start ralphex, walk away.
 
-**GitHub:** https://github.com/umputun/ralphex
+**GitHub:** https://github.com/kulebyaka/ralphex_cp
 
 ## Installation
 
 ```bash
 # from source
-go install github.com/umputun/ralphex/cmd/ralphex@latest
+go install github.com/kulebyaka/ralphex_cp/cmd/ralphex@latest
 
 # using homebrew
-brew install umputun/apps/ralphex
+brew install kulebyaka/apps/ralphex
 
-# from releases: https://github.com/umputun/ralphex/releases
+# from releases: https://github.com/kulebyaka/ralphex_cp/releases
 ```
 
 ## Quick Usage
@@ -120,21 +120,21 @@ ralphex provides Docker images for isolated execution:
 
 | Image | Contents |
 |-------|----------|
-| `ghcr.io/umputun/ralphex:latest` | Base: Copilot CLI, Node.js, Python, git, make, gcc, bash, fzf, ripgrep |
-| `ghcr.io/umputun/ralphex-go:latest` | Go development: base + Go 1.25, golangci-lint, moq, goimports |
+| `ghcr.io/kulebyaka/ralphex_cp:latest` | Base: Copilot CLI, Node.js, Python, git, make, gcc, bash, fzf, ripgrep |
+| `ghcr.io/kulebyaka/ralphex_cp-go:latest` | Go development: base + Go 1.25, golangci-lint, moq, goimports |
 
 **Using Docker wrapper** (requires Python 3.9+):
 ```bash
 # install wrapper script (defaults to Go image)
-curl -sL https://raw.githubusercontent.com/umputun/ralphex/master/scripts/ralphex-dk.sh -o /usr/local/bin/ralphex
+curl -sL https://raw.githubusercontent.com/kulebyaka/ralphex_cp/master/scripts/ralphex-dk.sh -o /usr/local/bin/ralphex
 chmod +x /usr/local/bin/ralphex
 
 # for non-Go projects, use base image
-export RALPHEX_IMAGE=ghcr.io/umputun/ralphex:latest
+export RALPHEX_IMAGE=ghcr.io/kulebyaka/ralphex_cp:latest
 ```
 
 **Environment variables:**
-- `RALPHEX_IMAGE` - Docker image (default: `ghcr.io/umputun/ralphex-go:latest`)
+- `RALPHEX_IMAGE` - Docker image (default: `ghcr.io/kulebyaka/ralphex_cp-go:latest`)
 - `RALPHEX_PORT` - Web dashboard port with `--serve` (default: `8080`)
 - `RALPHEX_CONFIG_DIR` - Custom config directory (default: `~/.config/ralphex`). Overrides global config location for prompts, agents, and settings
 - `RALPHEX_EXTRA_VOLUMES` - Extra volume mounts, comma-separated (e.g., `/data:/mnt/data:ro,/models:/mnt/models`)
@@ -145,7 +145,7 @@ export RALPHEX_IMAGE=ghcr.io/umputun/ralphex:latest
 **Creating custom images for other languages:**
 
 ```dockerfile
-FROM ghcr.io/umputun/ralphex:latest
+FROM ghcr.io/kulebyaka/ralphex_cp:latest
 
 # Rust
 RUN apk add --no-cache rust cargo
@@ -207,38 +207,47 @@ When a user asks about autonomous plan execution, implementing features with Cop
 
    **macOS (preferred: Homebrew)**:
    ```bash
-   brew install umputun/apps/ralphex
+   brew install kulebyaka/apps/ralphex
    ```
 
    **macOS (manual: download binary)**:
    ```bash
    # for Apple Silicon (M1/M2/M3)
-   curl -L https://github.com/umputun/ralphex/releases/latest/download/ralphex_VERSION_darwin_arm64.tar.gz | tar xz
+   curl -L https://github.com/kulebyaka/ralphex_cp/releases/latest/download/ralphex_VERSION_darwin_arm64.tar.gz | tar xz
    chmod +x ralphex && mv ralphex /usr/local/bin/
 
    # for Intel Macs
-   curl -L https://github.com/umputun/ralphex/releases/latest/download/ralphex_VERSION_darwin_amd64.tar.gz | tar xz
+   curl -L https://github.com/kulebyaka/ralphex_cp/releases/latest/download/ralphex_VERSION_darwin_amd64.tar.gz | tar xz
    chmod +x ralphex && mv ralphex /usr/local/bin/
    ```
-   Note: Replace VERSION with latest version from https://github.com/umputun/ralphex/releases
+   Note: Replace VERSION with latest version from https://github.com/kulebyaka/ralphex_cp/releases
 
    **Linux (Debian/Ubuntu)**:
    ```bash
    # download and install .deb package
-   curl -LO https://github.com/umputun/ralphex/releases/latest/download/ralphex_VERSION_linux_amd64.deb
+   curl -LO https://github.com/kulebyaka/ralphex_cp/releases/latest/download/ralphex_VERSION_linux_amd64.deb
    sudo dpkg -i ralphex_VERSION_linux_amd64.deb
    ```
 
    **Linux (RHEL/Fedora)**:
    ```bash
    # download and install .rpm package
-   curl -LO https://github.com/umputun/ralphex/releases/latest/download/ralphex_VERSION_linux_amd64.rpm
+   curl -LO https://github.com/kulebyaka/ralphex_cp/releases/latest/download/ralphex_VERSION_linux_amd64.rpm
    sudo rpm -i ralphex_VERSION_linux_amd64.rpm
    ```
 
+   **Windows (PowerShell)**:
+   ```powershell
+   # download and extract to a directory in PATH
+   Invoke-WebRequest -Uri "https://github.com/kulebyaka/ralphex_cp/releases/latest/download/ralphex_VERSION_windows_amd64.zip" -OutFile ralphex.zip
+   Expand-Archive ralphex.zip -DestinationPath "$env:LOCALAPPDATA\ralphex"
+   [Environment]::SetEnvironmentVariable("Path", "$env:LOCALAPPDATA\ralphex;" + [Environment]::GetEnvironmentVariable("Path", "User"), "User")
+   ```
+   Note: Replace VERSION with latest version. Windows has limited functionality — no process group signals, no file locking, no Ctrl+\ manual break.
+
    **Any platform with Go**:
    ```bash
-   go install github.com/umputun/ralphex/cmd/ralphex@latest
+   go install github.com/kulebyaka/ralphex_cp/cmd/ralphex@latest
    ```
 
 3. **Check if Claude Code plugin is installed**: Look for ralphex skills with `/plugin` command
@@ -246,8 +255,8 @@ When a user asks about autonomous plan execution, implementing features with Cop
 4. **If plugin not installed, offer installation**:
    - **Recommended**: Add marketplace and install plugin:
      ```bash
-     /plugin marketplace add umputun/ralphex
-     /plugin install ralphex@umputun-ralphex
+     /plugin marketplace add kulebyaka/ralphex_cp
+     /plugin install ralphex@kulebyaka-ralphex_cp
      ```
    - **Alternative**: Manual installation by fetching from URLs (see README)
 

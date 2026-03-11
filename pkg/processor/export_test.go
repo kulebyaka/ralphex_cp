@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/umputun/ralphex/pkg/executor"
+	"github.com/kulebyaka/ralphex_cp/pkg/executor"
 )
 
 // TestRunnerConfig provides test access to runner's internal configuration.

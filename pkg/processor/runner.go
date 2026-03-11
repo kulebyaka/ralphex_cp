@@ -10,10 +10,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/umputun/ralphex/pkg/config"
-	"github.com/umputun/ralphex/pkg/executor"
-	"github.com/umputun/ralphex/pkg/plan"
-	"github.com/umputun/ralphex/pkg/status"
+	"github.com/kulebyaka/ralphex_cp/pkg/config"
+	"github.com/kulebyaka/ralphex_cp/pkg/executor"
+	"github.com/kulebyaka/ralphex_cp/pkg/plan"
+	"github.com/kulebyaka/ralphex_cp/pkg/status"
 )
 
 // DefaultIterationDelay is the pause between iterations to allow system to settle.

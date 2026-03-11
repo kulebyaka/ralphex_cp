@@ -6,7 +6,7 @@ package mocks
 import (
 	"sync"
 
-	"github.com/umputun/ralphex/pkg/status"
+	"github.com/kulebyaka/ralphex_cp/pkg/status"
 )
 
 // LoggerMock is a mock implementation of web.Logger.

@@ -7,8 +7,8 @@ site_description: >-
 docs_dir: docs-src
 site_dir: site/docs
 
-repo_name: umputun/ralphex
-repo_url: https://github.com/umputun/ralphex
+repo_name: kulebyaka/ralphex_cp
+repo_url: https://github.com/kulebyaka/ralphex_cp
 copyright: Some rights reserved &copy; 2026 Umputun
 
 theme:
@@ -40,7 +40,7 @@ extra:
   generator: true
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/umputun
+      link: https://github.com/kulebyaka
     - icon: fontawesome/brands/telegram
       link: https://t.me/umputun
     - icon: fontawesome/brands/twitter

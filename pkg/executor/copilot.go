@@ -7,7 +7,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/umputun/ralphex/pkg/status"
+	"github.com/kulebyaka/ralphex_cp/pkg/status"
 )
 
 // copilotEvent represents a JSONL event from copilot CLI output.
