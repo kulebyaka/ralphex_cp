@@ -53,6 +53,7 @@ docs/plans/         # plan files location
 
 ## Key Patterns
 
+- Copilot CLI JSONL output parsing: `assistant.message` for authoritative text, `assistant.message_delta` for streaming, `result` for session end — see `docs/copilot-jsonl-format.md`
 - Signal-based completion detection (COMPLETED, FAILED, REVIEW_DONE signals) — constants in `pkg/status/`
 - Plan creation signals: QUESTION (with JSON payload) and PLAN_READY
 - Streaming output with timestamps
@@ -119,6 +120,13 @@ Key files:
 
 Config: `copilot_command = copilot` and `copilot_args = --allow-all --no-ask-user --output-format json`.
 Documentation: `docs/custom-providers.md`
+
+Key files:
+- `pkg/executor/copilot.go` - CopilotExecutor with JSONL output parsing
+- `pkg/executor/executor.go` - shared types (Result, PatternMatchError, LimitPatternError, CommandRunner)
+- `pkg/config/defaults/prompts/copilot_review.txt` - Copilot external review prompt
+- `docs/copilot-jsonl-format.md` - JSONL output format reference
+- `pkg/executor/testdata/copilot_fixtures/` - JSONL test fixtures
 
 ### Git Package API
 

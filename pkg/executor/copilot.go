@@ -123,7 +123,6 @@ func (e *CopilotExecutor) run(ctx context.Context, prompt, model string) Result 
 func (e *CopilotExecutor) parseJSONL(ctx context.Context, r io.Reader) Result {
 	var output strings.Builder
 	var signal string
-	var gotResult bool
 
 	err := readLines(ctx, r, func(line string) {
 		if line == "" {
@@ -167,8 +166,7 @@ func (e *CopilotExecutor) parseJSONL(ctx context.Context, r io.Reader) Result {
 			}
 
 		case "result":
-			gotResult = true
-			// result event has exitCode at top level (no data wrapper)
+			// result event has exitCode at top level (no data wrapper); session end marker
 
 		case "tool.execution_start":
 			// optionally log tool activity for progress display
@@ -192,6 +190,5 @@ func (e *CopilotExecutor) parseJSONL(ctx context.Context, r io.Reader) Result {
 		return Result{Output: output.String(), Signal: signal, Error: fmt.Errorf("stream read: %w", err)}
 	}
 
-	_ = gotResult // available for future abnormal termination detection
 	return Result{Output: output.String(), Signal: signal}
 }

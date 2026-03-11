@@ -156,6 +156,6 @@ If user explicitly asks "check ralphex", "ralphex status", or "how is ralphex do
 
 ## Nested Claude Code Sessions
 
-ralphex automatically strips the `CLAUDECODE` env var from child processes, allowing it to run from inside Claude Code. If the nested session error is somehow encountered, ralphex detects it via error pattern matching and exits gracefully instead of looping.
+ralphex uses Copilot CLI which has its own authentication (GITHUB_TOKEN), so nested Claude Code session conflicts do not apply. If an error is encountered, ralphex detects it via error pattern matching and exits gracefully.
 
 Running from a standalone terminal is still recommended for the best experience.

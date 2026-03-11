@@ -154,7 +154,7 @@ func (r *Runner) expandAgentReferences(prompt string) string {
 
 // replacePromptVariables replaces all template variables including agent references.
 // supported: {{PLAN_FILE}}, {{PROGRESS_FILE}}, {{GOAL}}, {{DEFAULT_BRANCH}}, {{PLANS_DIR}}, {{agent:name}}
-// note: {{CODEX_OUTPUT}} and {{PLAN_DESCRIPTION}} are handled by specific build functions.
+// note: {{COPILOT_OUTPUT}} and {{PLAN_DESCRIPTION}} are handled by specific build functions.
 func (r *Runner) replacePromptVariables(prompt string) string {
 	result := r.replaceBaseVariables(prompt)
 	result = r.expandAgentReferences(result)

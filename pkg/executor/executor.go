@@ -67,7 +67,7 @@ func (r *execRunner) Run(ctx context.Context, name string, args ...string) (io.R
 	if err != nil {
 		return nil, nil, fmt.Errorf("create stdout pipe: %w", err)
 	}
-	// capture stderr separately for CLI-level errors (copilot sends JSONL to stdout only)
+	// merge stderr into stdout so non-JSON CLI errors are captured in the same stream
 	cmd.Stderr = cmd.Stdout
 	if err := cmd.Start(); err != nil {
 		return nil, nil, fmt.Errorf("start command: %w", err)
