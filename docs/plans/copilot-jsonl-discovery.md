@@ -78,12 +78,15 @@ Capture, analyze, and document the JSONL event schema emitted by `copilot --outp
 - Create: `pkg/executor/testdata/copilot_fixtures/with_signal.jsonl`
 - Create: `pkg/executor/testdata/copilot_fixtures/error_exit.jsonl`
 
-- [ ] Run a prompt that will include a signal string in output: `copilot --model claude-opus-4-6 --output-format json --no-ask-user -p "Reply with exactly this text: <<<RALPHEX:COMPLETED>>>" 2>&1 | tee /tmp/copilot-signal.jsonl`
-- [ ] Verify the signal string appears in the JSONL text content (not mangled or escaped)
-- [ ] Capture an error scenario — run with an invalid model: `copilot --model nonexistent-model --output-format json --no-ask-user -p "hello" 2>&1 | tee /tmp/copilot-error.jsonl`; note exit code with `echo $?`
-- [ ] Capture a long-running prompt to observe streaming behavior — confirm events arrive incrementally (not buffered until completion)
-- [ ] Save fixtures to `pkg/executor/testdata/copilot_fixtures/`
-- [ ] Document: how errors surface in JSONL (error event type? stderr? exit code only?), how signals pass through text content, streaming timing behavior
+- [x] Run a prompt that will include a signal string in output: `copilot --output-format json --no-ask-user -p "Reply with exactly this text and nothing else: <<<RALPHEX:COMPLETED>>>"` (used default model — claude-opus-4-6 available on this account; 24 lines output)
+- [x] Verify the signal string appears in the JSONL text content (not mangled or escaped). VERIFIED: signal `<<<RALPHEX:COMPLETED>>>` appears verbatim in both assistant.message_delta.data.deltaContent (streaming) and assistant.message.data.content (complete). Not escaped or mangled. Also appears split across reasoning_delta events (ephemeral).
+- [x] Capture an error scenario — run with an invalid model: `copilot --model nonexistent-model --output-format json --no-ask-user -p "hello"`. FINDING: CLI argument validation errors produce NO JSONL output at all. Error goes to stderr as plain text. Exit code: 1. stderr: "error: option '--model <model>' argument 'nonexistent-model' is invalid. Allowed choices are claude-sonnet-4.6, claude-sonnet-4.5, ..."
+- [x] Capture a long-running prompt to observe streaming behavior — confirm events arrive incrementally (not buffered until completion). CONFIRMED: timestamps on delta events show ~20ms gaps between consecutive events (e.g., 12:55:06.535Z, 12:55:06.547Z, 12:55:06.568Z). Events arrive incrementally during generation, not buffered. Reasoning deltas arrive first, then message deltas, then complete message.
+- [x] Save fixtures to `pkg/executor/testdata/copilot_fixtures/` — saved with_signal.jsonl (24 lines) and error_exit.jsonl (metadata documenting error behavior since no JSONL is produced for CLI errors)
+- [x] Document: how errors surface in JSONL (error event type? stderr? exit code only?), how signals pass through text content, streaming timing behavior. FINDINGS:
+  - Errors: CLI argument errors go to stderr as plain text (no JSONL), exit code 1. No dedicated "error" event type observed in JSONL. Runtime errors likely surface via result.exitCode != 0 or abrupt stream termination. Rate limit errors expected in assistant.message text content (same as Claude Code behavior).
+  - Signals: pass through verbatim in assistant.message_delta.data.deltaContent (streaming, ephemeral) and assistant.message.data.content (complete). Signal detection should scan these fields for <<<RALPHEX:...>>> patterns. Reasoning deltas also contain signal text but are ephemeral — scanning message content is sufficient.
+  - Streaming: events arrive incrementally with ~20ms between deltas. Order: user.message -> turn_start -> reasoning_delta* -> message_delta* -> message -> reasoning -> turn_end -> result. Ephemeral events (deltas) have ephemeral=true flag.
 
 ### Task 4: Analyze and document the complete JSONL schema
 
