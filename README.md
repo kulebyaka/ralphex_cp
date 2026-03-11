@@ -242,13 +242,15 @@ Download the appropriate binary from [releases](https://github.com/kulebyaka/ral
 
 ### Windows
 
-Download `ralphex_<version>_windows_amd64.zip` (or `arm64`) from [releases](https://github.com/kulebyaka/ralphex_cp/releases), extract, and add to PATH:
+Download the zip for your architecture from [releases](https://github.com/kulebyaka/ralphex_cp/releases), extract, and add to PATH:
 
 ```powershell
-# PowerShell — download and extract to a directory in PATH
+# PowerShell — pick the right architecture:
+#   Intel/AMD: ralphex_<version>_windows_amd64.zip
+#   ARM (Surface Pro X, Snapdragon): ralphex_<version>_windows_arm64.zip
 Invoke-WebRequest -Uri "https://github.com/kulebyaka/ralphex_cp/releases/latest/download/ralphex_0.1.0_windows_amd64.zip" -OutFile ralphex.zip
-Expand-Archive ralphex.zip -DestinationPath "$env:LOCALAPPDATA\ralphex"
-# add to PATH (persistent for current user)
+Expand-Archive ralphex.zip -DestinationPath "$env:LOCALAPPDATA\ralphex" -Force
+# add to PATH (persistent for current user, restart terminal after)
 [Environment]::SetEnvironmentVariable("Path", "$env:LOCALAPPDATA\ralphex;" + [Environment]::GetEnvironmentVariable("Path", "User"), "User")
 ```
 
