@@ -62,6 +62,7 @@ Marks the beginning of an assistant turn. Multiple turns per session are common 
 ```
 
 - `data.turnId` — sequential turn number as string ("0", "1", "2", ...)
+- `data.interactionId` — session interaction ID (shared across all events in this interaction)
 
 ### assistant.reasoning_delta
 
@@ -204,6 +205,8 @@ Tool argument structures:
 
 Emitted when a tool finishes (success or failure).
 
+Success case (`success: true` — `result` present, no `error`):
+
 ```json
 {
   "type": "tool.execution_complete",
@@ -216,10 +219,6 @@ Emitted when a tool finishes (success or failure).
       "content": "short summary of result",
       "detailedContent": "full output or diff"
     },
-    "error": {
-      "message": "Permission denied and could not request permission from user",
-      "code": "denied"
-    },
     "toolTelemetry": {
       "properties": {
         "command": "create",
@@ -229,8 +228,31 @@ Emitted when a tool finishes (success or failure).
         "resultLength": 76,
         "linesAdded": 23,
         "linesRemoved": 0
-      }
+      },
+      "restrictedProperties": {}
     }
+  },
+  "id": "...",
+  "timestamp": "2026-03-11T12:52:01.572Z",
+  "parentId": "..."
+}
+```
+
+Failure case (`success: false` — `error` present, no `result`):
+
+```json
+{
+  "type": "tool.execution_complete",
+  "data": {
+    "toolCallId": "tooluse_XJpJgFSXrwB0zJRtrU8hlb",
+    "model": "claude-haiku-4.5",
+    "interactionId": "1ac5d70d-6020-4e33-a7c5-96fe8acdca52",
+    "success": false,
+    "error": {
+      "message": "Permission denied and could not request permission from user",
+      "code": "denied"
+    },
+    "toolTelemetry": {}
   },
   "id": "...",
   "timestamp": "2026-03-11T12:48:57.279Z",
@@ -239,11 +261,13 @@ Emitted when a tool finishes (success or failure).
 ```
 
 - `data.success` — boolean, whether tool completed successfully
-- `data.result` — present on success; `.content` is short summary, `.detailedContent` is full output/diff
-- `data.error` — present on failure; `.message` is error text, `.code` is error type (e.g. `"denied"`)
+- `data.result` — present on success only; `.content` is short summary, `.detailedContent` is full output/diff
+- `data.error` — present on failure only; `.message` is error text, `.code` is error type (e.g. `"denied"`)
+- `result` and `error` are mutually exclusive — exactly one is present depending on `success`
 - `data.model` — model used for tool execution sandbox (e.g. `"claude-haiku-4.5"`)
-- `data.toolTelemetry` — optional telemetry with `.properties` and `.metrics`
+- `data.toolTelemetry` — optional telemetry with `.properties`, `.metrics`, and `.restrictedProperties`
 - `data.toolTelemetry.metrics.linesAdded` / `.linesRemoved` — change metrics for file operations
+- `data.toolTelemetry.restrictedProperties` — may contain `filePaths` for some tool types (observed for `edit`); for `create`, `filePaths` appears in `.properties` instead
 
 Bash tool results include exit code marker in content: `<exited with exit code N>` appended to output.
 
@@ -326,6 +350,7 @@ Copilot emits incremental text deltas, similar to Claude Code's `content_block_d
    - `assistant.message` (complete message with full text + tool requests)
    - `assistant.reasoning` (Claude only, ephemeral, complete reasoning)
    - `tool.execution_start` * (one per tool call)
+   - `session.info` * (ephemeral, emitted for file operations between tool start/complete)
    - `tool.execution_complete` * (one per tool call)
    - `assistant.turn_end`
 3. Multiple turns per session when tools are used (turn N ends, turn N+1 starts)
@@ -342,9 +367,11 @@ Multiple tool calls can execute in parallel within the same turn (multiple `tool
 | `assistant.message.reasoningOpaque` | Present | Not present |
 | `assistant.message.reasoningText` | Present | Not present |
 | Tool use | Full (create, edit, view, bash, report_intent) | Observed: text-only responses (no tool use in simple prompts) |
-| Typical event count | 30-120 lines per session | 8-12 lines per session |
+| Typical event count | 10-120 lines per session (varies by task complexity) | 8-12 lines per session |
 
 Both models share the same event types for messages, turns, and results. The JSONL structure is identical — GPT simply omits reasoning-related events and fields.
+
+Note: The GPT fixture (`simple_text_gpt.jsonl`) was captured with `gpt-4.1` — `gpt-5.2-codex` was not available at discovery time. Tool-use behavior for `gpt-5.2-codex` may differ. The GPT fixture also has truncated streaming deltas (only the first few `assistant.message_delta` events were captured; the complete `assistant.message` is present).
 
 ## Exit Code Behavior
 
@@ -431,7 +458,7 @@ Without `--allow-all`, tools that require approval emit `tool.execution_complete
 
 No special "approval" or "permission" event types exist. The JSONL structure is identical — only the `success` and `error` fields on `tool.execution_complete` differ.
 
-For ralphex: always pass `--allow-all` (or `--allow-all-tools`) in non-interactive mode. If tool denials appear, detect via `tool.execution_complete.data.error.code == "denied"`.
+For ralphex: always pass `--allow-all` in non-interactive mode. If tool denials appear, detect via `tool.execution_complete.data.error.code == "denied"`. Note: only `--allow-all` was verified during discovery; check `copilot --help` for the canonical flag name.
 
 ### Unicode and special characters
 
