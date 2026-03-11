@@ -2,7 +2,7 @@
 
 ## Overview
 
-Replace Claude Code and OpenAI Codex CLI with GitHub Copilot CLI as the sole execution backend. Copilot CLI uses Claude Opus 4.6 for coding/review phases and GPT-5.2-Codex for external review, both accessible via a single `copilot` binary with GitHub authentication. **Prerequisite**: JSONL output format (`--output-format json`) must be documented in a separate discovery plan before this plan starts.
+Replace Claude Code and OpenAI Codex CLI with GitHub Copilot CLI as the sole execution backend. Copilot CLI uses Claude Opus 4.6 for coding/review phases and GPT-5.2-Codex for external review, both accessible via a single `copilot` binary with GitHub authentication. JSONL format is documented in `docs/copilot-jsonl-format.md` with test fixtures in `pkg/executor/testdata/copilot_fixtures/`.
 
 ## Context
 
@@ -30,6 +30,8 @@ Replace Claude Code and OpenAI Codex CLI with GitHub Copilot CLI as the sole exe
   - `scripts/ralphex-dk.sh` (existing — Docker wrapper with Bedrock support to simplify)
   - `docs/bedrock-setup.md` (existing — to be removed)
   - `docs/custom-providers.md` (existing — to be rewritten for Copilot CLI)
+  - `docs/copilot-jsonl-format.md` (existing — JSONL format reference from discovery plan)
+  - `pkg/executor/testdata/copilot_fixtures/*.jsonl` (existing — JSONL test fixtures from discovery plan)
 - Related patterns: executor interface (CommandRunner), signal detection (`detectSignal`/`matchPattern`), embedded defaults, config `*Set` flags
 - Dependencies: GitHub Copilot CLI (GA, standalone binary `copilot`)
 
@@ -38,7 +40,10 @@ Replace Claude Code and OpenAI Codex CLI with GitHub Copilot CLI as the sole exe
 - **Testing approach**: Regular (code first, then tests)
 - Complete each task fully before moving to the next
 - Shared types (Result, PatternMatchError, LimitPatternError, CommandRunner, detectSignal, matchPattern) stay in `executor.go` — only ClaudeExecutor is removed
-- JSONL parser structure based on discovery plan output (fixtures captured beforehand)
+- JSONL format reference: `docs/copilot-jsonl-format.md`; test fixtures: `pkg/executor/testdata/copilot_fixtures/`
+- Key JSONL event types: `assistant.message_delta` (streaming text via `data.deltaContent`), `assistant.message` (complete text via `data.content`, authoritative), `result` (session end, unique envelope — no `data` wrapper), `tool.execution_start`/`tool.execution_complete` (tool activity)
+- Important: `assistant.message_delta` may be absent on tool-heavy turns — always use `assistant.message.data.content` as authoritative text source
+- CLI errors (exit code 1) produce NO JSONL — error goes to stderr as plain text
 - **CRITICAL: every task MUST include new/updated tests**
 - **CRITICAL: all tests must pass before starting next task**
 
@@ -59,11 +64,20 @@ Replace Claude Code and OpenAI Codex CLI with GitHub Copilot CLI as the sole exe
 - [ ] Create `copilot.go` with `CopilotExecutor` struct: `Command` (string), `Args` ([]string), `CodingModel` (string), `ReviewModel` (string), `ErrorPatterns`/`LimitPatterns` ([]string), `OutputHandler` (func(string))
 - [ ] Implement `Run(ctx, prompt) Result` — invokes copilot with `CodingModel`
 - [ ] Implement `RunReview(ctx, prompt) Result` — invokes copilot with `ReviewModel`
-- [ ] Implement shared `run(ctx, prompt, model) Result` — builds command (`copilot --model <model> [args...] -p <prompt>`), streams JSONL from stdout, parses each line via `parseJSONL()`, calls `OutputHandler`, detects signals and error/limit patterns
-- [ ] Implement `parseJSONL(line []byte) (string, error)` — extracts text content from JSONL events (structure from discovery plan fixtures)
+- [ ] Implement shared `run(ctx, prompt, model) Result` — builds command (`copilot --model <model> [args...] -p <prompt>`), streams JSONL line-by-line from stdout, parses each line, calls `OutputHandler` with extracted text, detects signals and error/limit patterns. Handle stderr separately for CLI-level errors (no JSONL on exit code 1)
+- [ ] Implement JSONL parsing logic (see `docs/copilot-jsonl-format.md` for full schema):
+  - Parse each line as JSON, dispatch on `type` field
+  - `assistant.message_delta`: extract `data.deltaContent`, pass to `OutputHandler` for real-time streaming
+  - `assistant.message`: extract `data.content` as authoritative text (accumulate into Result.Output), scan for signals. Note: `data.content` may be empty string on tool-only turns
+  - `result`: extract top-level `exitCode` (unique envelope — no `data` wrapper). Session is done
+  - `tool.execution_start`: optionally log tool name for progress display
+  - `tool.execution_complete`: check `data.success` and `data.error.message` for tool-level errors
+  - Skip: `user.message`, `assistant.turn_start`, `assistant.turn_end`, `assistant.reasoning_delta`, `assistant.reasoning`, `session.info`
+  - Tolerate JSON parse errors on final line (process may be killed mid-stream, truncating JSONL)
+  - Detect abnormal termination: non-zero exit code + no `result` event received
 - [ ] Delete `codex.go` and `codex_test.go` entirely
-- [ ] Write table-driven tests for `CopilotExecutor` with mock CommandRunner: test streaming output, signal detection, error pattern matching, model switching between Run/RunReview
-- [ ] Write table-driven tests for `parseJSONL` with sample JSONL fixtures from discovery plan
+- [ ] Write table-driven tests for `CopilotExecutor` with mock CommandRunner: test streaming output, signal detection, error pattern matching, model switching between Run/RunReview, CLI error handling (no JSONL + stderr)
+- [ ] Write table-driven tests for JSONL parsing using fixtures from `pkg/executor/testdata/copilot_fixtures/`: `simple_text.jsonl` (Claude with tools), `simple_text_gpt.jsonl` (GPT text-only), `tool_use.jsonl` (multi-turn tool chain), `with_signal.jsonl` (signal passthrough)
 - [ ] Update `executor_test.go`: remove ClaudeExecutor tests, keep tests for shared types (detectSignal, matchPattern, filterEnv)
 - [ ] Run project test suite: `make test` — must pass before task 2
 
@@ -168,7 +182,7 @@ Replace Claude Code and OpenAI Codex CLI with GitHub Copilot CLI as the sole exe
 - [ ] Verify test coverage meets 80%+ for new code (`go test -cover ./pkg/executor/...`)
 - [ ] Grep for leftover claude/codex CLI references: `grep -ri "claude_command\|codex_command\|ClaudeExecutor\|CodexExecutor" pkg/ cmd/`
 - [ ] Verify embedded defaults load correctly: `go run ./cmd/ralphex --dump-defaults /tmp/copilot-defaults && ls /tmp/copilot-defaults/`
-- [ ] Manual smoke test with toy project (requires JSONL discovery plan to be completed first)
+- [ ] Manual smoke test with toy project
 
 ### Task 7: Update documentation
 
