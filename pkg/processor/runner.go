@@ -20,22 +20,22 @@ import (
 const DefaultIterationDelay = 2 * time.Second
 
 const (
-	minReviewIterations    = 3    // minimum claude review iterations
-	reviewIterationDivisor = 10   // review iterations = max_iterations / divisor
-	minCodexIterations     = 3    // minimum codex review iterations
-	codexIterationDivisor  = 5    // codex iterations = max_iterations / divisor
-	minPlanIterations      = 5    // minimum plan creation iterations
-	planIterationDivisor   = 5    // plan iterations = max_iterations / divisor
-	maxCodexSummaryLen     = 5000 // max chars for codex output summary
+	minReviewIterations      = 3    // minimum claude review iterations
+	reviewIterationDivisor   = 10   // review iterations = max_iterations / divisor
+	minExternalIterations    = 3    // minimum external review iterations
+	externalIterationDivisor = 5    // external iterations = max_iterations / divisor
+	minPlanIterations        = 5    // minimum plan creation iterations
+	planIterationDivisor     = 5    // plan iterations = max_iterations / divisor
+	maxExternalSummaryLen    = 5000 // max chars for external review output summary
 )
 
 // Mode represents the execution mode.
 type Mode string
 
 const (
-	ModeFull      Mode = "full"       // full execution: tasks + reviews + codex
+	ModeFull      Mode = "full"       // full execution: tasks + reviews + external
 	ModeReview    Mode = "review"     // skip tasks, run full review pipeline
-	ModeCodexOnly Mode = "codex-only" // skip tasks and first review, run only codex loop
+	ModeCodexOnly Mode = "codex-only" // skip tasks and first review, run only external review loop
 	ModeTasksOnly Mode = "tasks-only" // run only task phase, skip all reviews
 	ModePlan      Mode = "plan"       // interactive plan creation mode
 )
@@ -53,7 +53,7 @@ type Config struct {
 	NoColor               bool           // disable color output
 	IterationDelayMs      int            // delay between iterations in milliseconds
 	TaskRetryCount        int            // number of times to retry failed tasks
-	CodexEnabled          bool           // whether codex review is enabled
+	CodexEnabled          bool           // whether external review is enabled
 	FinalizeEnabled       bool           // whether finalize step is enabled
 	DefaultBranch         string         // default branch name (detected from repo)
 	AppConfig             *config.Config // full application config (for executors and prompts)
@@ -110,38 +110,26 @@ type Runner struct {
 }
 
 // New creates a new Runner with the given configuration and shared phase holder.
-// If codex is enabled but the binary is not found in PATH, it is automatically disabled with a warning.
+// If external review is enabled but the copilot binary is not found in PATH, it is automatically disabled with a warning.
 func New(cfg Config, log Logger, holder *status.PhaseHolder) *Runner {
-	// build claude executor with config values
-	claudeExec := &executor.ClaudeExecutor{
+	// build copilot executor with config values (used for both coding and review phases)
+	copilotExec := &executor.CopilotExecutor{
 		OutputHandler: func(text string) {
 			log.PrintAligned(text)
 		},
-		Debug: cfg.Debug,
 	}
 	if cfg.AppConfig != nil {
-		claudeExec.Command = cfg.AppConfig.ClaudeCommand
-		claudeExec.Args = cfg.AppConfig.ClaudeArgs
-		claudeExec.ErrorPatterns = cfg.AppConfig.ClaudeErrorPatterns
-		claudeExec.LimitPatterns = cfg.AppConfig.ClaudeLimitPatterns
+		copilotExec.Command = cfg.AppConfig.CopilotCommand
+		copilotExec.Args = cfg.AppConfig.CopilotArgs
+		copilotExec.CodingModel = cfg.AppConfig.CopilotCodingModel
+		copilotExec.ReviewModel = cfg.AppConfig.CopilotReviewModel
+		copilotExec.ErrorPatterns = cfg.AppConfig.CopilotErrorPatterns
+		copilotExec.LimitPatterns = cfg.AppConfig.CopilotLimitPatterns
 	}
 
-	// build codex executor with config values
-	codexExec := &executor.CodexExecutor{
-		OutputHandler: func(text string) {
-			log.PrintAligned(text)
-		},
-		Debug: cfg.Debug,
-	}
-	if cfg.AppConfig != nil {
-		codexExec.Command = cfg.AppConfig.CodexCommand
-		codexExec.Model = cfg.AppConfig.CodexModel
-		codexExec.ReasoningEffort = cfg.AppConfig.CodexReasoningEffort
-		codexExec.TimeoutMs = cfg.AppConfig.CodexTimeoutMs
-		codexExec.Sandbox = cfg.AppConfig.CodexSandbox
-		codexExec.ErrorPatterns = cfg.AppConfig.CodexErrorPatterns
-		codexExec.LimitPatterns = cfg.AppConfig.CodexLimitPatterns
-	}
+	// copilot executor for external review (uses ReviewModel)
+	// wraps RunReview to satisfy the Executor interface
+	copilotReviewExec := &copilotReviewAdapter{exec: copilotExec}
 
 	// build custom executor if custom review script is configured
 	var customExec *executor.CustomExecutor
@@ -151,25 +139,25 @@ func New(cfg Config, log Logger, holder *status.PhaseHolder) *Runner {
 			OutputHandler: func(text string) {
 				log.PrintAligned(text)
 			},
-			ErrorPatterns: cfg.AppConfig.CodexErrorPatterns, // reuse codex error patterns
-			LimitPatterns: cfg.AppConfig.CodexLimitPatterns, // reuse codex limit patterns
+			ErrorPatterns: cfg.AppConfig.CopilotErrorPatterns,
+			LimitPatterns: cfg.AppConfig.CopilotLimitPatterns,
 		}
 	}
 
-	// auto-disable codex if the binary is not installed AND we need codex
+	// auto-disable external review if the copilot binary is not installed AND we need it
 	// (skip this check if using custom external review tool or external review is disabled)
-	if cfg.CodexEnabled && needsCodexBinary(cfg.AppConfig) {
-		codexCmd := codexExec.Command
-		if codexCmd == "" {
-			codexCmd = "codex"
+	if cfg.CodexEnabled && needsCopilotBinary(cfg.AppConfig) {
+		copilotCmd := copilotExec.Command
+		if copilotCmd == "" {
+			copilotCmd = "copilot"
 		}
-		if _, err := exec.LookPath(codexCmd); err != nil {
-			log.Print("warning: codex not found (%s: %v), disabling codex review phase", codexCmd, err)
+		if _, err := exec.LookPath(copilotCmd); err != nil {
+			log.Print("warning: copilot not found (%s: %v), disabling external review phase", copilotCmd, err)
 			cfg.CodexEnabled = false
 		}
 	}
 
-	return NewWithExecutors(cfg, log, claudeExec, codexExec, customExec, holder)
+	return NewWithExecutors(cfg, log, copilotExec, copilotReviewExec, customExec, holder)
 }
 
 // NewWithExecutors creates a new Runner with custom executors (for testing).
@@ -242,7 +230,7 @@ func (r *Runner) Run(ctx context.Context) error {
 	}
 }
 
-// runFull executes the complete pipeline: tasks → review → codex → review.
+// runFull executes the complete pipeline: tasks → review → external review → review.
 func (r *Runner) runFull(ctx context.Context) error {
 	if r.cfg.PlanFile == "" {
 		return errors.New("plan file required for full mode")
@@ -264,12 +252,12 @@ func (r *Runner) runFull(ctx context.Context) error {
 		return fmt.Errorf("first review: %w", err)
 	}
 
-	// phase 2.1: claude review loop (critical/major) before codex
+	// phase 2.1: claude review loop (critical/major) before external review
 	if err := r.runClaudeReviewLoop(ctx); err != nil {
-		return fmt.Errorf("pre-codex review loop: %w", err)
+		return fmt.Errorf("pre-external review loop: %w", err)
 	}
 
-	// phase 2.5+3: codex → post-codex review → finalize
+	// phase 2.5+3: external review → post-review → finalize
 	if err := r.runCodexAndPostReview(ctx); err != nil {
 		return err
 	}
@@ -288,12 +276,12 @@ func (r *Runner) runReviewOnly(ctx context.Context) error {
 		return fmt.Errorf("first review: %w", err)
 	}
 
-	// phase 1.1: claude review loop (critical/major) before codex
+	// phase 1.1: claude review loop (critical/major) before external review
 	if err := r.runClaudeReviewLoop(ctx); err != nil {
-		return fmt.Errorf("pre-codex review loop: %w", err)
+		return fmt.Errorf("pre-external review loop: %w", err)
 	}
 
-	// phase 2+3: codex → post-codex review → finalize
+	// phase 2+3: external review → post-review → finalize
 	if err := r.runCodexAndPostReview(ctx); err != nil {
 		return err
 	}
@@ -302,28 +290,28 @@ func (r *Runner) runReviewOnly(ctx context.Context) error {
 	return nil
 }
 
-// runCodexOnly executes only the codex pipeline: codex → review → finalize.
+// runCodexOnly executes only the external review pipeline: external review → claude review → finalize.
 func (r *Runner) runCodexOnly(ctx context.Context) error {
 	if err := r.runCodexAndPostReview(ctx); err != nil {
 		return err
 	}
 
-	r.log.Print("codex phases completed successfully")
+	r.log.Print("external review phases completed successfully")
 	return nil
 }
 
-// runCodexAndPostReview runs the shared codex → post-codex claude review → finalize pipeline.
+// runCodexAndPostReview runs the shared external review → post-review claude review → finalize pipeline.
 // used by runFull, runReviewOnly, and runCodexOnly to avoid duplicating this sequence.
 func (r *Runner) runCodexAndPostReview(ctx context.Context) error {
-	// codex external review loop
+	// external review loop
 	r.phaseHolder.Set(status.PhaseCodex)
-	r.log.PrintSection(status.NewGenericSection("codex external review"))
+	r.log.PrintSection(status.NewGenericSection("copilot external review"))
 
 	if err := r.runCodexLoop(ctx); err != nil {
-		return fmt.Errorf("codex loop: %w", err)
+		return fmt.Errorf("external review loop: %w", err)
 	}
 
-	// claude review loop (critical/major) after codex.
+	// claude review loop (critical/major) after external review.
 	// prepend commit-pending instruction only when external review actually ran,
 	// because the loop may exit early (max iterations, stalemate, manual break)
 	// leaving uncommitted fixes in the worktree.
@@ -338,7 +326,7 @@ func (r *Runner) runCodexAndPostReview(ctx context.Context) error {
 			"Then continue with the sequence below.\n\n"
 	}
 	if err := r.runClaudeReviewLoop(ctx, commitPrefix); err != nil {
-		return fmt.Errorf("post-codex review loop: %w", err)
+		return fmt.Errorf("post-external review loop: %w", err)
 	}
 
 	// optional finalize step (best-effort, but propagates context cancellation)
@@ -562,11 +550,8 @@ func (r *Runner) updateStalemate(headBefore, diffBefore string, unchangedRounds 
 }
 
 // externalReviewTool returns the effective external review tool to use.
-// handles backward compatibility: codex_enabled = false → "none"
-// the CodexEnabled flag takes precedence for backward compatibility.
+// the CodexEnabled flag (mapped from config) controls whether external review runs.
 func (r *Runner) externalReviewTool() string {
-	// backward compatibility: codex_enabled = false means no external review
-	// this takes precedence over external_review_tool setting
 	if !r.cfg.CodexEnabled {
 		return "none"
 	}
@@ -576,11 +561,11 @@ func (r *Runner) externalReviewTool() string {
 		return r.cfg.AppConfig.ExternalReviewTool
 	}
 
-	// default to codex
-	return "codex"
+	// default to copilot
+	return "copilot"
 }
 
-// runCodexLoop runs the external review loop (codex or custom) until no findings.
+// runCodexLoop runs the external review loop (copilot or custom) until no findings.
 func (r *Runner) runCodexLoop(ctx context.Context) error {
 	tool := r.externalReviewTool()
 
@@ -605,13 +590,13 @@ func (r *Runner) runCodexLoop(ctx context.Context) error {
 		})
 	}
 
-	// default: codex review
+	// default: copilot review
 	return r.runExternalReviewLoop(ctx, externalReviewConfig{
-		name:            "codex",
+		name:            "copilot",
 		runReview:       r.codex.Run,
-		buildPrompt:     r.buildCodexPrompt,
-		buildEvalPrompt: r.buildCodexEvaluationPrompt,
-		showSummary:     r.showCodexSummary,
+		buildPrompt:     r.buildCopilotPrompt,
+		buildEvalPrompt: r.buildCopilotEvaluationPrompt,
+		showSummary:     r.showCopilotSummary,
 		makeSection:     status.NewCodexIterationSection,
 	})
 }
@@ -630,7 +615,7 @@ type externalReviewConfig struct {
 // it terminates when no findings remain, max iterations are reached,
 // stalemate is detected (review patience), or a manual break is requested.
 func (r *Runner) runExternalReviewLoop(ctx context.Context, cfg externalReviewConfig) error {
-	maxIterations := max(minCodexIterations, r.cfg.MaxIterations/codexIterationDivisor)
+	maxIterations := max(minExternalIterations, r.cfg.MaxIterations/externalIterationDivisor)
 	if r.cfg.MaxExternalIterations > 0 {
 		maxIterations = r.cfg.MaxExternalIterations
 	}
@@ -763,8 +748,8 @@ func (r *Runner) isManualBreak(parentCtx context.Context) bool {
 	}
 }
 
-// buildCodexPrompt creates the prompt for codex review.
-func (r *Runner) buildCodexPrompt(isFirst bool, claudeResponse string) string {
+// buildCopilotPrompt creates the prompt for copilot external review.
+func (r *Runner) buildCopilotPrompt(isFirst bool, claudeResponse string) string {
 	// build plan context if available
 	planContext := ""
 	if r.cfg.PlanFile != "" {
@@ -849,10 +834,10 @@ func (r *Runner) nextPlanTaskPosition() int {
 	return 0
 }
 
-// showCodexSummary displays a condensed summary of codex output before Claude evaluation.
-// extracts text until first code block or maxCodexSummaryLen chars, whichever is shorter.
-func (r *Runner) showCodexSummary(output string) {
-	r.showExternalReviewSummary("codex", output)
+// showCopilotSummary displays a condensed summary of copilot output before Claude evaluation.
+// extracts text until first code block or maxExternalSummaryLen chars, whichever is shorter.
+func (r *Runner) showCopilotSummary(output string) {
+	r.showExternalReviewSummary("copilot", output)
 }
 
 // showCustomSummary displays a condensed summary of custom review output before Claude evaluation.
@@ -870,9 +855,9 @@ func (r *Runner) showExternalReviewSummary(toolName, output string) {
 		summary = summary[:idx]
 	}
 
-	// limit to maxCodexSummaryLen runes to avoid splitting multi-byte characters
-	if runes := []rune(summary); len(runes) > maxCodexSummaryLen {
-		summary = string(runes[:maxCodexSummaryLen]) + "..."
+	// limit to maxExternalSummaryLen runes to avoid splitting multi-byte characters
+	if runes := []rune(summary); len(runes) > maxExternalSummaryLen {
+		summary = string(runes[:maxExternalSummaryLen]) + "..."
 	}
 
 	summary = strings.TrimSpace(summary)
@@ -1148,16 +1133,25 @@ func (r *Runner) sleepWithContext(ctx context.Context, d time.Duration) error {
 	}
 }
 
-// needsCodexBinary returns true if the current configuration requires the codex binary.
-// returns false when external_review_tool is "custom" or "none", since codex isn't used.
-func needsCodexBinary(appConfig *config.Config) bool {
+// copilotReviewAdapter wraps CopilotExecutor.RunReview to satisfy the Executor interface.
+type copilotReviewAdapter struct {
+	exec *executor.CopilotExecutor
+}
+
+func (a *copilotReviewAdapter) Run(ctx context.Context, prompt string) executor.Result {
+	return a.exec.RunReview(ctx, prompt)
+}
+
+// needsCopilotBinary returns true if the current configuration requires the copilot binary.
+// returns false when external_review_tool is "custom" or "none", since copilot isn't used for review.
+func needsCopilotBinary(appConfig *config.Config) bool {
 	if appConfig == nil {
-		return true // default behavior assumes codex
+		return true // default behavior assumes copilot
 	}
 	switch appConfig.ExternalReviewTool {
 	case "custom", "none":
 		return false
 	default:
-		return true // "codex" or empty (default) requires codex binary
+		return true // "copilot" or empty (default) requires copilot binary
 	}
 }

@@ -111,15 +111,15 @@ func TestRunner_replacePromptVariables_NoAgentWarningsInEmbeddedPrompts(t *testi
 	}
 }
 
-func TestRunner_buildCodexEvaluationPrompt(t *testing.T) {
+func TestRunner_buildCopilotEvaluationPrompt(t *testing.T) {
 	findings := "Issue 1: Missing error check in foo.go:42"
 
 	r := &Runner{cfg: Config{AppConfig: testAppConfig(t)}, log: newMockLogger("")}
-	prompt := r.buildCodexEvaluationPrompt(findings)
+	prompt := r.buildCopilotEvaluationPrompt(findings)
 
 	assert.Contains(t, prompt, findings)
 	assert.Contains(t, prompt, "<<<RALPHEX:CODEX_REVIEW_DONE>>>")
-	assert.Contains(t, prompt, "Codex reviewed the code")
+	assert.Contains(t, prompt, "Copilot reviewed the code")
 	assert.Contains(t, prompt, "Valid issues")
 	assert.Contains(t, prompt, "Invalid/irrelevant issues")
 }
@@ -173,14 +173,14 @@ func TestRunner_replacePromptVariables_CustomReviewSecondPrompt(t *testing.T) {
 	assert.Equal(t, "Custom second review for implementation of plan at docs/plans/test.md", prompt)
 }
 
-func TestRunner_buildCodexEvaluationPrompt_CustomPrompt(t *testing.T) {
+func TestRunner_buildCopilotEvaluationPrompt_CustomPrompt(t *testing.T) {
 	appCfg := &config.Config{
-		CodexPrompt: "Custom codex evaluation with output: {{CODEX_OUTPUT}} for {{GOAL}}",
+		CopilotReviewPrompt: "Custom copilot evaluation with output: {{COPILOT_OUTPUT}} for {{GOAL}}",
 	}
 	r := &Runner{cfg: Config{PlanFile: "docs/plans/test.md", AppConfig: appCfg}}
-	prompt := r.buildCodexEvaluationPrompt("found bug in main.go")
+	prompt := r.buildCopilotEvaluationPrompt("found bug in main.go")
 
-	assert.Equal(t, "Custom codex evaluation with output: found bug in main.go for implementation of plan at docs/plans/test.md", prompt)
+	assert.Equal(t, "Custom copilot evaluation with output: found bug in main.go for implementation of plan at docs/plans/test.md", prompt)
 }
 
 func TestRunner_replacePromptVariables(t *testing.T) {

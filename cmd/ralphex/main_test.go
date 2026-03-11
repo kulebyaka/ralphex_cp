@@ -38,20 +38,20 @@ func testColors() *progress.Colors {
 	})
 }
 
-// skipIfClaudeNotAvailable loads config (read-only) and skips test if configured claude command is not in PATH.
+// skipIfCopilotNotAvailable loads config (read-only) and skips test if configured copilot command is not in PATH.
 // uses LoadReadOnly to avoid installing defaults to real user config directory during tests.
-func skipIfClaudeNotAvailable(t *testing.T) {
+func skipIfCopilotNotAvailable(t *testing.T) {
 	t.Helper()
 	cfg, err := config.LoadReadOnly("")
 	if err != nil {
 		t.Skipf("failed to load config: %v", err)
 	}
-	claudeCmd := cfg.ClaudeCommand
-	if claudeCmd == "" {
-		claudeCmd = "claude"
+	copilotCmd := cfg.CopilotCommand
+	if copilotCmd == "" {
+		copilotCmd = "copilot"
 	}
-	if _, err := exec.LookPath(claudeCmd); err != nil {
-		t.Skipf("%s not installed", claudeCmd)
+	if _, err := exec.LookPath(copilotCmd); err != nil {
+		t.Skipf("%s not installed", copilotCmd)
 	}
 }
 
@@ -182,8 +182,8 @@ func TestPlanFlagConflict(t *testing.T) {
 
 func TestPlanModeIntegration(t *testing.T) {
 	t.Run("plan_mode_requires_git_repo", func(t *testing.T) {
-		// skip if configured claude command is not installed
-		skipIfClaudeNotAvailable(t)
+		// skip if configured copilot command is not installed
+		skipIfCopilotNotAvailable(t)
 
 		// run from a non-git directory
 		tmpDir := t.TempDir()
@@ -222,8 +222,8 @@ func TestPlanModeIntegration(t *testing.T) {
 	})
 
 	t.Run("plan_mode_progress_file_naming", func(t *testing.T) {
-		// skip if configured claude command is not installed
-		skipIfClaudeNotAvailable(t)
+		// skip if configured copilot command is not installed
+		skipIfCopilotNotAvailable(t)
 
 		// test that progress filename is generated correctly for plan mode
 		// the actual file creation is tested by the integration test with real runner
@@ -257,8 +257,8 @@ func TestPlanModeIntegration(t *testing.T) {
 
 func TestAutoPlanModeDetection(t *testing.T) {
 	t.Run("feature_branch_with_no_plans_still_errors", func(t *testing.T) {
-		// skip if configured claude command is not installed
-		skipIfClaudeNotAvailable(t)
+		// skip if configured copilot command is not installed
+		skipIfCopilotNotAvailable(t)
 
 		dir := setupTestRepo(t)
 		origDir, err := os.Getwd()
@@ -284,8 +284,8 @@ func TestAutoPlanModeDetection(t *testing.T) {
 	})
 
 	t.Run("review_mode_skips_auto_plan_mode", func(t *testing.T) {
-		// skip if configured claude command is not installed
-		skipIfClaudeNotAvailable(t)
+		// skip if configured copilot command is not installed
+		skipIfCopilotNotAvailable(t)
 
 		dir := setupTestRepo(t)
 		origDir, err := os.Getwd()
@@ -311,8 +311,8 @@ func TestAutoPlanModeDetection(t *testing.T) {
 	})
 
 	t.Run("codex_only_mode_skips_auto_plan_mode", func(t *testing.T) {
-		// skip if configured claude command is not installed
-		skipIfClaudeNotAvailable(t)
+		// skip if configured copilot command is not installed
+		skipIfCopilotNotAvailable(t)
 
 		dir := setupTestRepo(t)
 		origDir, err := os.Getwd()
@@ -338,8 +338,8 @@ func TestAutoPlanModeDetection(t *testing.T) {
 	})
 
 	t.Run("external_only_mode_skips_auto_plan_mode", func(t *testing.T) {
-		// skip if configured claude command is not installed
-		skipIfClaudeNotAvailable(t)
+		// skip if configured copilot command is not installed
+		skipIfCopilotNotAvailable(t)
 
 		dir := setupTestRepo(t)
 		origDir, err := os.Getwd()
@@ -365,21 +365,21 @@ func TestAutoPlanModeDetection(t *testing.T) {
 	})
 }
 
-func TestCheckClaudeDep(t *testing.T) {
+func TestCheckCopilotDep(t *testing.T) {
 	t.Run("uses_configured_command", func(t *testing.T) {
-		cfg := &config.Config{ClaudeCommand: "nonexistent-command-12345"}
-		err := checkClaudeDep(cfg)
+		cfg := &config.Config{CopilotCommand: "nonexistent-command-12345"}
+		err := checkCopilotDep(cfg)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "nonexistent-command-12345")
 	})
 
-	t.Run("falls_back_to_claude_when_empty", func(t *testing.T) {
-		cfg := &config.Config{ClaudeCommand: ""}
-		err := checkClaudeDep(cfg)
-		// may pass or fail depending on whether claude is installed
-		// but error message should reference "claude" not empty string
+	t.Run("falls_back_to_copilot_when_empty", func(t *testing.T) {
+		cfg := &config.Config{CopilotCommand: ""}
+		err := checkCopilotDep(cfg)
+		// may pass or fail depending on whether copilot is installed
+		// but error message should reference "copilot" not empty string
 		if err != nil {
-			assert.Contains(t, err.Error(), "claude")
+			assert.Contains(t, err.Error(), "copilot")
 		}
 	})
 }
@@ -392,7 +392,7 @@ func TestCreateRunner(t *testing.T) {
 		require.NoError(t, os.Chdir(tmpDir))
 		t.Cleanup(func() { _ = os.Chdir(oldWd) })
 
-		cfg := &config.Config{IterationDelayMs: 5000, TaskRetryCount: 3, CodexEnabled: false}
+		cfg := &config.Config{IterationDelayMs: 5000, TaskRetryCount: 3, ExternalReviewTool: "none"}
 		o := opts{MaxIterations: 100, Debug: true, NoColor: true}
 
 		colors := testColors()
@@ -413,7 +413,7 @@ func TestCreateRunner(t *testing.T) {
 		require.NoError(t, os.Chdir(tmpDir))
 		t.Cleanup(func() { _ = os.Chdir(oldWd) })
 
-		cfg := &config.Config{CodexEnabled: false} // explicitly disabled in config
+		cfg := &config.Config{ExternalReviewTool: "none"} // explicitly disabled in config
 		o := opts{MaxIterations: 50}
 
 		colors := testColors()
@@ -811,7 +811,7 @@ func TestEnsureRepoHasCommits(t *testing.T) {
 
 func TestTasksOnlyModeBranchCreation(t *testing.T) {
 	t.Run("tasks_only_creates_branch_for_plan", func(t *testing.T) {
-		skipIfClaudeNotAvailable(t)
+		skipIfCopilotNotAvailable(t)
 		configDir := t.TempDir() // isolate from global config
 
 		dir := setupTestRepo(t)
@@ -856,7 +856,7 @@ func TestTasksOnlyModeBranchCreation(t *testing.T) {
 	})
 
 	t.Run("review_mode_does_not_create_branch", func(t *testing.T) {
-		skipIfClaudeNotAvailable(t)
+		skipIfCopilotNotAvailable(t)
 		configDir := t.TempDir() // isolate from global config
 
 		dir := setupTestRepo(t)
@@ -889,7 +889,7 @@ func TestTasksOnlyModeBranchCreation(t *testing.T) {
 	})
 
 	t.Run("codex_only_mode_does_not_create_branch", func(t *testing.T) {
-		skipIfClaudeNotAvailable(t)
+		skipIfCopilotNotAvailable(t)
 		configDir := t.TempDir() // isolate from global config
 
 		dir := setupTestRepo(t)
@@ -922,7 +922,7 @@ func TestTasksOnlyModeBranchCreation(t *testing.T) {
 	})
 
 	t.Run("external_only_mode_does_not_create_branch", func(t *testing.T) {
-		skipIfClaudeNotAvailable(t)
+		skipIfCopilotNotAvailable(t)
 		configDir := t.TempDir() // isolate from global config
 
 		dir := setupTestRepo(t)
@@ -1141,7 +1141,7 @@ func TestDumpDefaults(t *testing.T) {
 
 		data, err := os.ReadFile(filepath.Join(tmpDir, "config")) //nolint:gosec // test
 		require.NoError(t, err)
-		assert.Contains(t, string(data), "claude_command")
+		assert.Contains(t, string(data), "copilot_command")
 		// raw content should have uncommented lines
 		hasUncommented := false
 		for line := range strings.SplitSeq(string(data), "\n") {
@@ -1229,7 +1229,7 @@ func TestResolveVersion(t *testing.T) {
 
 func TestRunWithWorktree(t *testing.T) {
 	t.Run("creates_worktree_and_restores_cwd", func(t *testing.T) {
-		skipIfClaudeNotAvailable(t)
+		skipIfCopilotNotAvailable(t)
 
 		dir := setupTestRepo(t)
 		origDir, err := os.Getwd()
@@ -1280,7 +1280,7 @@ func TestRunWithWorktree(t *testing.T) {
 	})
 
 	t.Run("populates_worktree_cleanup_ptr", func(t *testing.T) {
-		skipIfClaudeNotAvailable(t)
+		skipIfCopilotNotAvailable(t)
 
 		dir := setupTestRepo(t)
 		origDir, err := os.Getwd()
@@ -1317,7 +1317,7 @@ func TestRunWithWorktree(t *testing.T) {
 	})
 
 	t.Run("worktree_creates_branch", func(t *testing.T) {
-		skipIfClaudeNotAvailable(t)
+		skipIfCopilotNotAvailable(t)
 
 		dir := setupTestRepo(t)
 		origDir, err := os.Getwd()
@@ -1359,7 +1359,7 @@ func TestWorktreeMode_SkippedForNonBranchModes(t *testing.T) {
 	// here we verify the guard condition explicitly.
 
 	t.Run("worktree_skipped_for_review_mode", func(t *testing.T) {
-		skipIfClaudeNotAvailable(t)
+		skipIfCopilotNotAvailable(t)
 
 		dir := setupTestRepo(t)
 		origDir, err := os.Getwd()
@@ -1393,7 +1393,7 @@ func TestWorktreeMode_SkippedForNonBranchModes(t *testing.T) {
 }
 
 func TestRunWithWorktree_UntrackedPlan(t *testing.T) {
-	skipIfClaudeNotAvailable(t)
+	skipIfCopilotNotAvailable(t)
 
 	dir := setupTestRepo(t)
 	origDir, err := os.Getwd()

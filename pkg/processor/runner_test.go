@@ -560,7 +560,7 @@ func TestRunner_HasUncompletedTasks_CompletedDir(t *testing.T) {
 	assert.True(t, r.TestHasUncompletedTasks())
 }
 
-func TestRunner_BuildCodexPrompt_CompletedDir(t *testing.T) {
+func TestRunner_BuildCopilotPrompt_CompletedDir(t *testing.T) {
 	tmpDir := t.TempDir()
 	plansDir := filepath.Join(tmpDir, "docs", "plans")
 	completedDir := filepath.Join(plansDir, "completed")
@@ -578,7 +578,7 @@ func TestRunner_BuildCodexPrompt_CompletedDir(t *testing.T) {
 	cfg := processor.Config{PlanFile: originalPath}
 	r := processor.NewWithExecutors(cfg, log, claude, codex, nil, &status.PhaseHolder{})
 
-	prompt := r.TestBuildCodexPrompt(true, "")
+	prompt := r.TestBuildCopilotPrompt(true, "")
 
 	assert.Contains(t, prompt, completedPath)
 	assert.NotContains(t, prompt, originalPath)
@@ -850,7 +850,7 @@ func TestRunner_New_CodexNotInstalled_AutoDisables(t *testing.T) {
 	log := newMockLogger("progress.txt")
 
 	appCfg := testAppConfig(t)
-	appCfg.CodexCommand = "/nonexistent/path/to/codex" // command that doesn't exist
+	appCfg.CopilotCommand = "/nonexistent/path/to/copilot" // command that doesn't exist
 
 	cfg := processor.Config{
 		Mode:          processor.ModeCodexOnly,
@@ -866,12 +866,12 @@ func TestRunner_New_CodexNotInstalled_AutoDisables(t *testing.T) {
 	var foundWarning bool
 	for _, call := range log.PrintCalls() {
 		// format includes %v for error, so check format string
-		if strings.Contains(call.Format, "codex not found") && strings.Contains(call.Format, "%v") {
+		if strings.Contains(call.Format, "copilot not found") && strings.Contains(call.Format, "%v") {
 			foundWarning = true
 			break
 		}
 	}
-	assert.True(t, foundWarning, "should log warning about codex not found with error details")
+	assert.True(t, foundWarning, "should log warning about copilot not found with error details")
 
 	// verify runner was created (auto-disable happens at construction time)
 	assert.NotNil(t, r, "runner should be created even when codex not found")
@@ -881,8 +881,8 @@ func TestRunner_New_CodexNotInstalled_CustomReviewStillWorks(t *testing.T) {
 	log := newMockLogger("progress.txt")
 
 	appCfg := testAppConfig(t)
-	appCfg.CodexCommand = "/nonexistent/path/to/codex" // command that doesn't exist
-	appCfg.ExternalReviewTool = "custom"               // using custom, not codex
+	appCfg.CopilotCommand = "/nonexistent/path/to/copilot" // command that doesn't exist
+	appCfg.ExternalReviewTool = "custom"                   // using custom, not codex
 	appCfg.CustomReviewScript = "/path/to/script.sh"
 
 	cfg := processor.Config{
@@ -898,7 +898,7 @@ func TestRunner_New_CodexNotInstalled_CustomReviewStillWorks(t *testing.T) {
 	// verify NO warning was logged (custom reviews don't need codex binary)
 	var foundWarning bool
 	for _, call := range log.PrintCalls() {
-		if strings.Contains(call.Format, "codex not found") {
+		if strings.Contains(call.Format, "copilot not found") {
 			foundWarning = true
 			break
 		}
@@ -913,8 +913,8 @@ func TestRunner_New_CodexNotInstalled_NoneReviewStillWorks(t *testing.T) {
 	log := newMockLogger("progress.txt")
 
 	appCfg := testAppConfig(t)
-	appCfg.CodexCommand = "/nonexistent/path/to/codex" // command that doesn't exist
-	appCfg.ExternalReviewTool = "none"                 // external review disabled
+	appCfg.CopilotCommand = "/nonexistent/path/to/copilot" // command that doesn't exist
+	appCfg.ExternalReviewTool = "none"                     // external review disabled
 
 	cfg := processor.Config{
 		Mode:          processor.ModeCodexOnly,
@@ -929,7 +929,7 @@ func TestRunner_New_CodexNotInstalled_NoneReviewStillWorks(t *testing.T) {
 	// verify NO warning was logged (no external review means no codex needed)
 	var foundWarning bool
 	for _, call := range log.PrintCalls() {
-		if strings.Contains(call.Format, "codex not found") {
+		if strings.Contains(call.Format, "copilot not found") {
 			foundWarning = true
 			break
 		}
@@ -1719,19 +1719,19 @@ func TestRunner_Finalize_ContextCancellationPropagates(t *testing.T) {
 	assert.ErrorIs(t, err, context.Canceled)
 }
 
-func TestRunner_ExternalReviewTool_CodexEnabled(t *testing.T) {
+func TestRunner_ExternalReviewTool_CopilotEnabled(t *testing.T) {
 	log := newMockLogger("progress.txt")
 	claude := newMockExecutor([]executor.Result{
-		{Output: "done", Signal: processor.SignalCodexDone},         // codex evaluation
-		{Output: "review done", Signal: processor.SignalReviewDone}, // post-codex review loop
+		{Output: "done", Signal: processor.SignalCodexDone},         // copilot evaluation
+		{Output: "review done", Signal: processor.SignalReviewDone}, // post-external review loop
 	})
 	codex := newMockExecutor([]executor.Result{
 		{Output: "found issue"},
 	})
 
 	appCfg := testAppConfig(t)
-	// explicitly set to codex (though it's the default)
-	appCfg.ExternalReviewTool = "codex"
+	// explicitly set to copilot (the default)
+	appCfg.ExternalReviewTool = "copilot"
 
 	cfg := processor.Config{
 		Mode:          processor.ModeCodexOnly,
@@ -1743,7 +1743,7 @@ func TestRunner_ExternalReviewTool_CodexEnabled(t *testing.T) {
 	err := r.Run(t.Context())
 
 	require.NoError(t, err)
-	assert.Len(t, codex.RunCalls(), 1, "codex should be called when external_review_tool=codex")
+	assert.Len(t, codex.RunCalls(), 1, "copilot should be called when external_review_tool=copilot")
 }
 
 func TestRunner_ExternalReviewTool_None(t *testing.T) {
@@ -1769,16 +1769,16 @@ func TestRunner_ExternalReviewTool_None(t *testing.T) {
 	assert.Empty(t, codex.RunCalls(), "codex should not be called when external_review_tool=none")
 }
 
-func TestRunner_ExternalReviewTool_BackwardCompat_CodexDisabled(t *testing.T) {
+func TestRunner_ExternalReviewTool_BackwardCompat_ExternalDisabled(t *testing.T) {
 	log := newMockLogger("progress.txt")
 	claude := newMockExecutor([]executor.Result{
-		{Output: "review done", Signal: processor.SignalReviewDone}, // post-codex review loop
+		{Output: "review done", Signal: processor.SignalReviewDone}, // post-external review loop
 	})
 	codex := newMockExecutor(nil)
 
 	appCfg := testAppConfig(t)
-	// external_review_tool is "codex" (default), but CodexEnabled is false
-	appCfg.ExternalReviewTool = "codex"
+	// external_review_tool is "copilot" (default), but CodexEnabled is false
+	appCfg.ExternalReviewTool = "copilot"
 
 	cfg := processor.Config{
 		Mode:          processor.ModeCodexOnly,
@@ -1790,7 +1790,7 @@ func TestRunner_ExternalReviewTool_BackwardCompat_CodexDisabled(t *testing.T) {
 	err := r.Run(t.Context())
 
 	require.NoError(t, err)
-	assert.Empty(t, codex.RunCalls(), "codex should not be called when CodexEnabled=false (backward compat)")
+	assert.Empty(t, codex.RunCalls(), "copilot should not be called when CodexEnabled=false")
 }
 
 func TestRunner_ExternalReviewTool_Custom_Success(t *testing.T) {

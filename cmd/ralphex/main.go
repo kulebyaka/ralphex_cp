@@ -1,4 +1,4 @@
-// Package main provides ralphex - autonomous plan execution with Claude Code.
+// Package main provides ralphex - autonomous plan execution with Copilot CLI.
 package main
 
 import (
@@ -35,7 +35,7 @@ type opts struct {
 	ReviewPatience        int           `long:"review-patience" default:"0" description:"terminate external review after N unchanged rounds (0 = disabled)"`
 	Review                bool          `short:"r" long:"review" description:"skip task execution, run full review pipeline"`
 	ExternalOnly          bool          `short:"e" long:"external-only" description:"skip tasks and first review, run only external review loop"`
-	CodexOnly             bool          `short:"c" long:"codex-only" description:"alias for --external-only (deprecated)"`
+	CodexOnly             bool          `short:"c" long:"codex-only" description:"alias for --external-only (deprecated, use --external-only)"`
 	TasksOnly             bool          `short:"t" long:"tasks-only" description:"run only task phase, skip all reviews"`
 	BaseRef               string        `short:"b" long:"base-ref" description:"override default branch for review diffs (branch name or commit hash)"`
 	Wait                  time.Duration `long:"wait" description:"wait duration on rate limit before retry (e.g. 1h, 30m)"`
@@ -222,8 +222,8 @@ func run(ctx context.Context, o opts) error {
 		return runWatchOnly(ctx, o, cfg, colors)
 	}
 
-	// check dependencies using configured command (or default "claude")
-	if depErr := checkClaudeDep(cfg); depErr != nil {
+	// check dependencies using configured command (or default "copilot")
+	if depErr := checkCopilotDep(cfg); depErr != nil {
 		return depErr
 	}
 
@@ -675,14 +675,14 @@ func ensureGitIgnored(gitSvc *git.Service, patternPairs ...string) error {
 	return nil
 }
 
-// checkClaudeDep checks that the claude command is available in PATH.
-func checkClaudeDep(cfg *config.Config) error {
-	claudeCmd := cfg.ClaudeCommand
-	if claudeCmd == "" {
-		claudeCmd = "claude"
+// checkCopilotDep checks that the copilot command is available in PATH.
+func checkCopilotDep(cfg *config.Config) error {
+	copilotCmd := cfg.CopilotCommand
+	if copilotCmd == "" {
+		copilotCmd = "copilot"
 	}
-	if _, err := exec.LookPath(claudeCmd); err != nil {
-		return fmt.Errorf("%s not found in PATH", claudeCmd)
+	if _, err := exec.LookPath(copilotCmd); err != nil {
+		return fmt.Errorf("%s not found in PATH (install: gh extension install github/gh-copilot)", copilotCmd)
 	}
 	return nil
 }
@@ -742,8 +742,9 @@ func validateFlags(o opts) error {
 
 // createRunner creates a processor.Runner with the given configuration.
 func createRunner(req executePlanRequest, o opts, log processor.Logger, holder *status.PhaseHolder) *processor.Runner {
-	// --codex-only mode forces codex enabled regardless of config
-	codexEnabled := req.Config.CodexEnabled
+	// derive external review enabled state from external_review_tool config
+	// --codex-only mode forces external review enabled regardless of config
+	codexEnabled := req.Config.ExternalReviewTool != "none"
 	if req.Mode == processor.ModeCodexOnly {
 		codexEnabled = true
 	}

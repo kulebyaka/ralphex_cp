@@ -154,7 +154,7 @@ func (r *Runner) expandAgentReferences(prompt string) string {
 
 // replacePromptVariables replaces all template variables including agent references.
 // supported: {{PLAN_FILE}}, {{PROGRESS_FILE}}, {{GOAL}}, {{DEFAULT_BRANCH}}, {{PLANS_DIR}}, {{agent:name}}
-// note: {{CODEX_OUTPUT}} and {{PLAN_DESCRIPTION}} are handled by specific build functions.
+// note: {{COPILOT_OUTPUT}} and {{PLAN_DESCRIPTION}} are handled by specific build functions.
 func (r *Runner) replacePromptVariables(prompt string) string {
 	result := r.replaceBaseVariables(prompt)
 	result = r.expandAgentReferences(result)
@@ -177,12 +177,12 @@ func (r *Runner) getPlansDir() string {
 	return r.cfg.AppConfig.PlansDir
 }
 
-// buildCodexEvaluationPrompt creates the prompt for claude to evaluate codex review output.
-// uses the codex prompt loaded from config (either user-provided or embedded default).
+// buildCopilotEvaluationPrompt creates the prompt for claude to evaluate copilot review output.
+// uses the copilot review prompt loaded from config (either user-provided or embedded default).
 // agent references ({{agent:name}}) are expanded via replacePromptVariables.
-func (r *Runner) buildCodexEvaluationPrompt(codexOutput string) string {
-	prompt := r.replacePromptVariables(r.cfg.AppConfig.CodexPrompt)
-	return strings.ReplaceAll(prompt, "{{CODEX_OUTPUT}}", codexOutput)
+func (r *Runner) buildCopilotEvaluationPrompt(copilotOutput string) string {
+	prompt := r.replacePromptVariables(r.cfg.AppConfig.CopilotReviewPrompt)
+	return strings.ReplaceAll(prompt, "{{COPILOT_OUTPUT}}", copilotOutput)
 }
 
 // buildPlanPrompt creates the prompt for interactive plan creation.
