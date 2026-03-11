@@ -22,7 +22,7 @@ See `docs/copilot-jsonl-format.md` for the full JSONL schema reference.
 # in ~/.config/ralphex/config or .ralphex/config
 copilot_command = copilot
 copilot_args = --allow-all --no-ask-user --output-format json
-copilot_coding_model = claude-opus-4-6
+copilot_coding_model = claude-opus-4.6
 copilot_review_model = gpt-5.2-codex
 ```
 
@@ -33,7 +33,7 @@ ralphex prompts instruct the agent to emit signals like `<<<RALPHEX:COMPLETED>>>
 ### Model selection
 
 `CopilotExecutor` uses two models:
-- **Coding model** (`copilot_coding_model`): used for task execution and review phases (default: `claude-opus-4-6`)
+- **Coding model** (`copilot_coding_model`): used for task execution and review phases (default: `claude-opus-4.6`)
 - **Review model** (`copilot_review_model`): used for external review phases (default: `gpt-5.2-codex`)
 
 The model is passed via `--model <model>` flag to the copilot command.

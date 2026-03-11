@@ -23,12 +23,12 @@ copilot_command = copilot
 copilot_args = --allow-all --no-ask-user --output-format json
 
 # copilot_coding_model: model ID for coding/task phases
-# available: claude-opus-4-6, claude-sonnet-4-6, claude-haiku-4-5
-# default: claude-opus-4-6
-copilot_coding_model = claude-opus-4-6
+# available: claude-opus-4.6, claude-sonnet-4.6, claude-haiku-4.5
+# default: claude-opus-4.6
+copilot_coding_model = claude-opus-4.6
 
 # copilot_review_model: model ID for external review phase
-# available: gpt-5.2-codex, claude-opus-4-6, claude-sonnet-4-6
+# available: gpt-5.2-codex, claude-opus-4.6, claude-sonnet-4.6
 # default: gpt-5.2-codex
 copilot_review_model = gpt-5.2-codex
 

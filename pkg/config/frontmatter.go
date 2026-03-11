@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
 	"gopkg.in/yaml.v3"
@@ -15,10 +16,24 @@ type Options struct {
 
 // validModels contains accepted full model IDs for agent frontmatter.
 var validModels = map[string]bool{
-	"claude-opus-4-6":   true,
-	"claude-sonnet-4-6": true,
-	"claude-haiku-4-5":  true,
-	"gpt-5.2-codex":     true,
+	"claude-opus-4.6":      true,
+	"claude-opus-4.6-fast": true,
+	"claude-opus-4.5":      true,
+	"claude-sonnet-4.6":    true,
+	"claude-sonnet-4.5":    true,
+	"claude-sonnet-4":      true,
+	"claude-haiku-4.5":     true,
+	"gpt-5.4":              true,
+	"gpt-5.3-codex":        true,
+	"gpt-5.2-codex":        true,
+	"gpt-5.2":              true,
+	"gpt-5.1-codex-max":    true,
+	"gpt-5.1-codex":        true,
+	"gpt-5.1":              true,
+	"gpt-5.1-codex-mini":   true,
+	"gpt-5-mini":           true,
+	"gpt-4.1":              true,
+	"gemini-3-pro-preview": true,
 }
 
 // String returns a human-readable summary of the options for logging.
@@ -38,7 +53,12 @@ func (o Options) String() string {
 func (o Options) Validate() []string {
 	var warnings []string
 	if o.Model != "" && !validModels[o.Model] {
-		warnings = append(warnings, fmt.Sprintf("unknown model %q, must be one of: claude-opus-4-6, claude-sonnet-4-6, claude-haiku-4-5, gpt-5.2-codex", o.Model))
+		names := make([]string, 0, len(validModels))
+		for k := range validModels {
+			names = append(names, k)
+		}
+		sort.Strings(names)
+		warnings = append(warnings, fmt.Sprintf("unknown model %q, must be one of: %s", o.Model, strings.Join(names, ", ")))
 	}
 	return warnings
 }

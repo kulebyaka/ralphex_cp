@@ -190,7 +190,7 @@ func TestCopilotExecutor_RunReview_UsesReviewModel(t *testing.T) {
 	}
 	e := &CopilotExecutor{
 		cmdRunner:   mock,
-		CodingModel: "claude-opus-4-6",
+		CodingModel: "claude-opus-4.6",
 		ReviewModel: "gpt-5.2-codex",
 	}
 
@@ -200,7 +200,7 @@ func TestCopilotExecutor_RunReview_UsesReviewModel(t *testing.T) {
 	assert.Equal(t, "review done", result.Output)
 	// should use ReviewModel, not CodingModel
 	assert.Contains(t, capturedArgs, "gpt-5.2-codex")
-	assert.NotContains(t, capturedArgs, "claude-opus-4-6")
+	assert.NotContains(t, capturedArgs, "claude-opus-4.6")
 }
 
 func TestCopilotExecutor_Run_UsesCodingModel(t *testing.T) {
@@ -214,7 +214,7 @@ func TestCopilotExecutor_Run_UsesCodingModel(t *testing.T) {
 	}
 	e := &CopilotExecutor{
 		cmdRunner:   mock,
-		CodingModel: "claude-opus-4-6",
+		CodingModel: "claude-opus-4.6",
 		ReviewModel: "gpt-5.2-codex",
 	}
 
@@ -222,7 +222,7 @@ func TestCopilotExecutor_Run_UsesCodingModel(t *testing.T) {
 
 	require.NoError(t, result.Error)
 	assert.Equal(t, "coding done", result.Output)
-	assert.Contains(t, capturedArgs, "claude-opus-4-6")
+	assert.Contains(t, capturedArgs, "claude-opus-4.6")
 	assert.NotContains(t, capturedArgs, "gpt-5.2-codex")
 }
 

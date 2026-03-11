@@ -23,7 +23,7 @@ func TestValuesLoader_Load_EmbeddedOnly(t *testing.T) {
 	// all values should come from embedded defaults
 	assert.Equal(t, "copilot", values.CopilotCommand)
 	assert.Equal(t, "--allow-all --no-ask-user --output-format json", values.CopilotArgs)
-	assert.Equal(t, "claude-opus-4-6", values.CopilotCodingModel)
+	assert.Equal(t, "claude-opus-4.6", values.CopilotCodingModel)
 	assert.Equal(t, "gpt-5.2-codex", values.CopilotReviewModel)
 	assert.Equal(t, "copilot", values.ExternalReviewTool)
 	assert.Empty(t, values.CustomReviewScript)
@@ -59,7 +59,7 @@ iteration_delay_ms = 5000
 	assert.Equal(t, 5000, values.IterationDelayMs)
 
 	// values from embedded (not set in global)
-	assert.Equal(t, "claude-opus-4-6", values.CopilotCodingModel)
+	assert.Equal(t, "claude-opus-4.6", values.CopilotCodingModel)
 	assert.Equal(t, "gpt-5.2-codex", values.CopilotReviewModel)
 	assert.Equal(t, "docs/plans", values.PlansDir)
 }
@@ -114,7 +114,7 @@ func TestValuesLoader_Load_PartialConfigs(t *testing.T) {
 	// missing values filled from embedded defaults
 	assert.Equal(t, "copilot", values.CopilotCommand)
 	assert.Equal(t, "--allow-all --no-ask-user --output-format json", values.CopilotArgs)
-	assert.Equal(t, "claude-opus-4-6", values.CopilotCodingModel)
+	assert.Equal(t, "claude-opus-4.6", values.CopilotCodingModel)
 	assert.Equal(t, 2000, values.IterationDelayMs)
 }
 
@@ -208,7 +208,7 @@ func TestValuesLoader_Load_CopilotReviewModel(t *testing.T) {
 	// custom model should be preserved
 	assert.Equal(t, "custom-review-model", values.CopilotReviewModel)
 	// coding model should still be the embedded default
-	assert.Equal(t, "claude-opus-4-6", values.CopilotCodingModel)
+	assert.Equal(t, "claude-opus-4.6", values.CopilotCodingModel)
 }
 
 func TestValuesLoader_Load_ExplicitZeroIterationDelayMs(t *testing.T) {
@@ -232,14 +232,14 @@ func TestValuesLoader_Load_LocalOverridesCopilotCodingModel(t *testing.T) {
 	globalConfig := filepath.Join(tmpDir, "global")
 	localConfig := filepath.Join(tmpDir, "local")
 
-	require.NoError(t, os.WriteFile(globalConfig, []byte(`copilot_coding_model = claude-sonnet-4-6`), 0o600))
-	require.NoError(t, os.WriteFile(localConfig, []byte(`copilot_coding_model = claude-haiku-4-5`), 0o600))
+	require.NoError(t, os.WriteFile(globalConfig, []byte(`copilot_coding_model = claude-sonnet-4.6`), 0o600))
+	require.NoError(t, os.WriteFile(localConfig, []byte(`copilot_coding_model = claude-haiku-4.5`), 0o600))
 
 	loader := newValuesLoader(defaultsFS)
 	values, err := loader.Load(localConfig, globalConfig)
 	require.NoError(t, err)
 
-	assert.Equal(t, "claude-haiku-4-5", values.CopilotCodingModel)
+	assert.Equal(t, "claude-haiku-4.5", values.CopilotCodingModel)
 }
 
 func TestValuesLoader_Load_LocalOverridesTaskRetryCount(t *testing.T) {
@@ -433,7 +433,7 @@ func TestValuesLoader_Load_AllValuesFromUserConfig(t *testing.T) {
 	configContent := `
 copilot_command = /custom/copilot
 copilot_args = --custom
-copilot_coding_model = claude-sonnet-4-6
+copilot_coding_model = claude-sonnet-4.6
 copilot_review_model = custom-model
 external_review_tool = none
 iteration_delay_ms = 500
@@ -449,7 +449,7 @@ plans_dir = my/plans
 
 	assert.Equal(t, "/custom/copilot", values.CopilotCommand)
 	assert.Equal(t, "--custom", values.CopilotArgs)
-	assert.Equal(t, "claude-sonnet-4-6", values.CopilotCodingModel)
+	assert.Equal(t, "claude-sonnet-4.6", values.CopilotCodingModel)
 	assert.Equal(t, "custom-model", values.CopilotReviewModel)
 	assert.Equal(t, "none", values.ExternalReviewTool)
 	assert.Equal(t, 500, values.IterationDelayMs)
@@ -497,7 +497,7 @@ func TestValues_mergeFrom(t *testing.T) {
 			IterationDelayMsSet: true,
 			TaskRetryCount:      5,
 			TaskRetryCountSet:   true,
-			CopilotCodingModel:  "claude-opus-4-6",
+			CopilotCodingModel:  "claude-opus-4.6",
 			CopilotReviewModel:  "gpt-5.2-codex",
 		}
 		src := Values{
@@ -505,14 +505,14 @@ func TestValues_mergeFrom(t *testing.T) {
 			IterationDelayMsSet: true,
 			TaskRetryCount:      0,
 			TaskRetryCountSet:   true,
-			CopilotCodingModel:  "claude-sonnet-4-6",
+			CopilotCodingModel:  "claude-sonnet-4.6",
 			CopilotReviewModel:  "custom-model",
 		}
 		dst.mergeFrom(&src)
 
 		assert.Equal(t, 0, dst.IterationDelayMs)
 		assert.Equal(t, 0, dst.TaskRetryCount)
-		assert.Equal(t, "claude-sonnet-4-6", dst.CopilotCodingModel)
+		assert.Equal(t, "claude-sonnet-4.6", dst.CopilotCodingModel)
 		assert.Equal(t, "custom-model", dst.CopilotReviewModel)
 	})
 
@@ -522,7 +522,7 @@ func TestValues_mergeFrom(t *testing.T) {
 			IterationDelayMsSet: true,
 			TaskRetryCount:      5,
 			TaskRetryCountSet:   true,
-			CopilotCodingModel:  "claude-opus-4-6",
+			CopilotCodingModel:  "claude-opus-4.6",
 			CopilotReviewModel:  "gpt-5.2-codex",
 		}
 		src := Values{
@@ -537,7 +537,7 @@ func TestValues_mergeFrom(t *testing.T) {
 
 		assert.Equal(t, 2000, dst.IterationDelayMs)
 		assert.Equal(t, 5, dst.TaskRetryCount)
-		assert.Equal(t, "claude-opus-4-6", dst.CopilotCodingModel)
+		assert.Equal(t, "claude-opus-4.6", dst.CopilotCodingModel)
 		assert.Equal(t, "gpt-5.2-codex", dst.CopilotReviewModel)
 	})
 }
@@ -549,7 +549,7 @@ func TestValuesLoader_parseValuesFromBytes(t *testing.T) {
 		data := []byte(`
 copilot_command = /custom/copilot
 copilot_args = --custom-arg
-copilot_coding_model = claude-sonnet-4-6
+copilot_coding_model = claude-sonnet-4.6
 copilot_review_model = gpt-5
 external_review_tool = none
 iteration_delay_ms = 5000
@@ -561,7 +561,7 @@ plans_dir = custom/plans
 
 		assert.Equal(t, "/custom/copilot", values.CopilotCommand)
 		assert.Equal(t, "--custom-arg", values.CopilotArgs)
-		assert.Equal(t, "claude-sonnet-4-6", values.CopilotCodingModel)
+		assert.Equal(t, "claude-sonnet-4.6", values.CopilotCodingModel)
 		assert.Equal(t, "gpt-5", values.CopilotReviewModel)
 		assert.Equal(t, "none", values.ExternalReviewTool)
 		assert.Equal(t, 5000, values.IterationDelayMs)
@@ -742,7 +742,7 @@ func TestValuesLoader_Load_AllCommentedConfigFallsBackToEmbedded(t *testing.T) {
 	// should fall back to embedded defaults since file has no actual content
 	assert.Equal(t, "copilot", values.CopilotCommand)
 	assert.Equal(t, "--allow-all --no-ask-user --output-format json", values.CopilotArgs)
-	assert.Equal(t, "claude-opus-4-6", values.CopilotCodingModel)
+	assert.Equal(t, "claude-opus-4.6", values.CopilotCodingModel)
 	assert.Equal(t, "gpt-5.2-codex", values.CopilotReviewModel)
 	assert.Equal(t, "docs/plans", values.PlansDir)
 }

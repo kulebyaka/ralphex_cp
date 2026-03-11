@@ -116,7 +116,7 @@ Key files:
 
 ### Copilot CLI Configuration
 
-`copilot_command` and `copilot_args` config options allow overriding the Copilot CLI command and arguments. The `CopilotExecutor` uses two models: `copilot_coding_model` (default: `claude-opus-4-6`) for task execution and review phases, and `copilot_review_model` (default: `gpt-5.2-codex`) for external review phases.
+`copilot_command` and `copilot_args` config options allow overriding the Copilot CLI command and arguments. The `CopilotExecutor` uses two models: `copilot_coding_model` (default: `claude-opus-4.6`) for task execution and review phases, and `copilot_review_model` (default: `gpt-5.2-codex`) for external review phases.
 
 Config: `copilot_command = copilot` and `copilot_args = --allow-all --no-ask-user --output-format json`.
 Documentation: `docs/custom-providers.md`
@@ -285,7 +285,7 @@ Implementation:
 - `testing.txt` - reviews test coverage and quality
 
 **Frontmatter options:** Agent files support optional YAML frontmatter (`---` delimited) for per-agent model and subagent type:
-- `model: claude-opus-4-6|claude-sonnet-4-6|claude-haiku-4-5|gpt-5.2-codex` — model for this agent (full Copilot model IDs)
+- `model: claude-opus-4.6|claude-sonnet-4.6|claude-haiku-4.5|gpt-5.2-codex` — model for this agent (full Copilot model IDs)
 - `agent: <type>` — Copilot CLI Task tool subagent type (default: `general-purpose`)
 - Parsed by `parseOptions()` in `pkg/config/frontmatter.go`, validated by `Options.Validate()`
 - Invalid model values are dropped with a warning, falling back to defaults

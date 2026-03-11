@@ -579,7 +579,7 @@ Review the code for quality issues...
 
 | Option | Values | Description |
 |--------|--------|-------------|
-| `model` | `claude-opus-4-6`, `claude-sonnet-4-6`, `claude-haiku-4-5`, `gpt-5.2-codex` | Copilot model for this agent |
+| `model` | `claude-opus-4.6`, `claude-sonnet-4.6`, `claude-haiku-4.5`, `gpt-5.2-codex` | Copilot model for this agent |
 | `agent` | any string | Copilot CLI Task tool subagent type |
 
 Both options are optional. Without frontmatter, agents use default model and `general-purpose` subagent type. Full Copilot model IDs are used directly. Invalid model values are dropped with a warning.
@@ -717,7 +717,7 @@ Use `--config-dir` or `RALPHEX_CONFIG_DIR` to override the global config locatio
 |--------|-------------|---------|
 | `copilot_command` | Copilot CLI command | `copilot` |
 | `copilot_args` | Copilot CLI arguments | `--allow-all --no-ask-user --output-format json` |
-| `copilot_coding_model` | Model for task execution and review phases | `claude-opus-4-6` |
+| `copilot_coding_model` | Model for task execution and review phases | `claude-opus-4.6` |
 | `copilot_review_model` | Model for external review phases | `gpt-5.2-codex` |
 | `external_review_tool` | External review tool (`copilot`, `custom`, `none`) | `copilot` |
 | `custom_review_script` | Path to custom review script (when `external_review_tool = custom`) | - |
@@ -839,13 +839,13 @@ When running ralphex in Docker, your script must be accessible inside the contai
 
 ### Copilot CLI Configuration
 
-The `copilot_command` and `copilot_args` config options let you override the Copilot CLI command and its arguments. The `CopilotExecutor` uses two models controlled by `copilot_coding_model` (default: `claude-opus-4-6`) and `copilot_review_model` (default: `gpt-5.2-codex`).
+The `copilot_command` and `copilot_args` config options let you override the Copilot CLI command and its arguments. The `CopilotExecutor` uses two models controlled by `copilot_coding_model` (default: `claude-opus-4.6`) and `copilot_review_model` (default: `gpt-5.2-codex`).
 
 ```ini
 # in ~/.config/ralphex/config or .ralphex/config
 copilot_command = copilot
 copilot_args = --allow-all --no-ask-user --output-format json
-copilot_coding_model = claude-opus-4-6
+copilot_coding_model = claude-opus-4.6
 copilot_review_model = gpt-5.2-codex
 ```
 
@@ -969,7 +969,7 @@ When a rate limit is detected, ralphex waits the specified duration and retries.
 Yes. Configure `copilot_coding_model` in `~/.config/ralphex/config`:
 
 ```ini
-copilot_coding_model = claude-sonnet-4-6
+copilot_coding_model = claude-sonnet-4.6
 ```
 
 See [Copilot CLI Configuration](#copilot-cli-configuration) for all available options.

@@ -193,7 +193,7 @@ func TestLoad_PartialConfig(t *testing.T) {
 	// missing values filled from embedded defaults
 	assert.Equal(t, "copilot", cfg.CopilotCommand)
 	assert.Equal(t, "--allow-all --no-ask-user --output-format json", cfg.CopilotArgs)
-	assert.Equal(t, "claude-opus-4-6", cfg.CopilotCodingModel)
+	assert.Equal(t, "claude-opus-4.6", cfg.CopilotCodingModel)
 	assert.Equal(t, "gpt-5.2-codex", cfg.CopilotReviewModel)
 	assert.Equal(t, 2000, cfg.IterationDelayMs)
 	assert.Equal(t, "copilot", cfg.ExternalReviewTool)
@@ -216,7 +216,7 @@ func TestLoad_EmptyConfig(t *testing.T) {
 	// all values should come from embedded defaults
 	assert.Equal(t, "copilot", cfg.CopilotCommand)
 	assert.Equal(t, "--allow-all --no-ask-user --output-format json", cfg.CopilotArgs)
-	assert.Equal(t, "claude-opus-4-6", cfg.CopilotCodingModel)
+	assert.Equal(t, "claude-opus-4.6", cfg.CopilotCodingModel)
 	assert.Equal(t, "gpt-5.2-codex", cfg.CopilotReviewModel)
 	assert.Equal(t, "docs/plans", cfg.PlansDir)
 	assert.Equal(t, 2000, cfg.IterationDelayMs)
@@ -669,7 +669,7 @@ color_task = #0000ff
 
 	// embedded defaults (not in global or local)
 	assert.Equal(t, "--allow-all --no-ask-user --output-format json", cfg.CopilotArgs)
-	assert.Equal(t, "claude-opus-4-6", cfg.CopilotCodingModel)
+	assert.Equal(t, "claude-opus-4.6", cfg.CopilotCodingModel)
 	assert.Equal(t, "gpt-5.2-codex", cfg.CopilotReviewModel)
 
 	// --- verify colors merge chain ---
