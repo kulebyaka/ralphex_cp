@@ -177,12 +177,12 @@ func (r *Runner) getPlansDir() string {
 	return r.cfg.AppConfig.PlansDir
 }
 
-// buildCodexEvaluationPrompt creates the prompt for claude to evaluate codex review output.
-// uses the codex prompt loaded from config (either user-provided or embedded default).
+// buildCopilotEvaluationPrompt creates the prompt for claude to evaluate copilot review output.
+// uses the copilot review prompt loaded from config (either user-provided or embedded default).
 // agent references ({{agent:name}}) are expanded via replacePromptVariables.
-func (r *Runner) buildCodexEvaluationPrompt(codexOutput string) string {
+func (r *Runner) buildCopilotEvaluationPrompt(copilotOutput string) string {
 	prompt := r.replacePromptVariables(r.cfg.AppConfig.CopilotReviewPrompt)
-	return strings.ReplaceAll(prompt, "{{CODEX_OUTPUT}}", codexOutput)
+	return strings.ReplaceAll(prompt, "{{COPILOT_OUTPUT}}", copilotOutput)
 }
 
 // buildPlanPrompt creates the prompt for interactive plan creation.

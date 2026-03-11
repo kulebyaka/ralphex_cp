@@ -122,18 +122,18 @@ Replace Claude Code and OpenAI Codex CLI with GitHub Copilot CLI as the sole exe
 - Modify: `pkg/config/defaults/agents/*.txt` (update model frontmatter if using short keywords)
 - Modify: `pkg/config/config.go` (rename prompt file constant `codexPromptFile`)
 
-- [ ] In `runner.go` `New()`: replace ClaudeExecutor creation with CopilotExecutor — set `Command`, `Args`, `CodingModel`, `ReviewModel`, `ErrorPatterns`, `LimitPatterns`, `OutputHandler` from config
-- [ ] Remove CodexExecutor creation from `New()`
-- [ ] Update `externalReviewTool()`: change `"codex"` references to `"copilot"`, keep backward compat for `codex_enabled = false` → `"none"` (or drop if full replacement)
-- [ ] Update `needsCodexBinary()` → rename to `needsCopilotBinary()` or remove (copilot is always needed)
-- [ ] Update external review loop dispatch: `"copilot"` case uses `CopilotExecutor.RunReview()`, `"custom"` case unchanged, `"none"` case unchanged
-- [ ] Update `runWithLimitRetry()` if it references claude/codex-specific types
-- [ ] Rename `codexPromptFile` constant in `config.go` to `copilotReviewPromptFile` and update references
-- [ ] In all default prompt files: remove Claude Code-specific instructions (e.g., "You are running inside Claude Code", references to `claude` CLI); replace with Copilot CLI-appropriate language
-- [ ] Rename `codex.txt` → `copilot_review.txt` (update embedded FS glob and file constant)
-- [ ] Update agent frontmatter in `defaults/agents/*.txt` if any use short model keywords
-- [ ] Update runner tests: mock CopilotExecutor instead of separate Claude/Codex executors
-- [ ] Run project test suite: `make test` — must pass before task 4
+- [x] In `runner.go` `New()`: replace ClaudeExecutor creation with CopilotExecutor — set `Command`, `Args`, `CodingModel`, `ReviewModel`, `ErrorPatterns`, `LimitPatterns`, `OutputHandler` from config
+- [x] Remove CodexExecutor creation from `New()`
+- [x] Update `externalReviewTool()`: change `"codex"` references to `"copilot"`, keep backward compat for `codex_enabled = false` → `"none"` (or drop if full replacement)
+- [x] Update `needsCodexBinary()` → rename to `needsCopilotBinary()` or remove (copilot is always needed)
+- [x] Update external review loop dispatch: `"copilot"` case uses `CopilotExecutor.RunReview()`, `"custom"` case unchanged, `"none"` case unchanged
+- [x] Update `runWithLimitRetry()` if it references claude/codex-specific types
+- [x] Rename `codexPromptFile` constant in `config.go` to `copilotReviewPromptFile` and update references
+- [x] In all default prompt files: remove Claude Code-specific instructions (e.g., "You are running inside Claude Code", references to `claude` CLI); replace with Copilot CLI-appropriate language
+- [x] Rename `codex.txt` → `copilot_review.txt` (update embedded FS glob and file constant)
+- [x] Update agent frontmatter in `defaults/agents/*.txt` if any use short model keywords
+- [x] Update runner tests: mock CopilotExecutor instead of separate Claude/Codex executors
+- [x] Run project test suite: `make test` — must pass before task 4
 
 ### Task 4: Update CLI entry point and Docker wrapper
 

@@ -31,7 +31,7 @@ func Test_defaultsFS_PromptFiles(t *testing.T) {
 		{file: "defaults/prompts/task.txt", contains: []string{"{{PLAN_FILE}}", "{{PROGRESS_FILE}}", "RALPHEX:ALL_TASKS_DONE", "RALPHEX:TASK_FAILED"}},
 		{file: "defaults/prompts/review_first.txt", contains: []string{"{{GOAL}}", "{{PROGRESS_FILE}}", "RALPHEX:REVIEW_DONE", "{{agent:quality}}", "{{agent:testing}}"}},
 		{file: "defaults/prompts/review_second.txt", contains: []string{"{{GOAL}}", "{{PROGRESS_FILE}}", "RALPHEX:REVIEW_DONE", "{{agent:quality}}", "{{agent:implementation}}"}},
-		{file: "defaults/prompts/codex.txt", contains: []string{"{{CODEX_OUTPUT}}", "RALPHEX:CODEX_REVIEW_DONE", "Codex reviewed"}},
+		{file: "defaults/prompts/copilot_review.txt", contains: []string{"{{COPILOT_OUTPUT}}", "RALPHEX:CODEX_REVIEW_DONE", "Copilot reviewed"}},
 	}
 
 	for _, tc := range testCases {
@@ -54,7 +54,7 @@ func Test_defaultsFS_AllFilesPresent(t *testing.T) {
 		"defaults/prompts/task.txt",
 		"defaults/prompts/review_first.txt",
 		"defaults/prompts/review_second.txt",
-		"defaults/prompts/codex.txt",
+		"defaults/prompts/copilot_review.txt",
 	}
 
 	for _, file := range expectedFiles {
@@ -687,7 +687,7 @@ color_task = #0000ff
 	assert.Equal(t, "global review first", cfg.ReviewFirstPrompt)
 	// embedded defaults (not in local or global)
 	assert.Contains(t, cfg.ReviewSecondPrompt, "{{GOAL}}", "embedded review_second should be used")
-	assert.Contains(t, cfg.CopilotReviewPrompt, "{{CODEX_OUTPUT}}", "embedded codex should be used")
+	assert.Contains(t, cfg.CopilotReviewPrompt, "{{COPILOT_OUTPUT}}", "embedded copilot review should be used")
 
 	// --- verify agents replace behavior (local agents completely replace global) ---
 	require.Len(t, cfg.CustomAgents, 1, "local agents should replace global entirely")

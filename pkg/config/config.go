@@ -19,7 +19,7 @@ const (
 	taskPromptFile         = "task.txt"
 	reviewFirstPromptFile  = "review_first.txt"
 	reviewSecondPromptFile = "review_second.txt"
-	codexPromptFile        = "codex.txt"
+	copilotReviewPromptFile = "copilot_review.txt"
 	makePlanPromptFile     = "make_plan.txt"
 	finalizePromptFile     = "finalize.txt"
 	customReviewPromptFile = "custom_review.txt"

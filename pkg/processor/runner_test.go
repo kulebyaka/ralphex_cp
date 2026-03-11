@@ -560,7 +560,7 @@ func TestRunner_HasUncompletedTasks_CompletedDir(t *testing.T) {
 	assert.True(t, r.TestHasUncompletedTasks())
 }
 
-func TestRunner_BuildCodexPrompt_CompletedDir(t *testing.T) {
+func TestRunner_BuildCopilotPrompt_CompletedDir(t *testing.T) {
 	tmpDir := t.TempDir()
 	plansDir := filepath.Join(tmpDir, "docs", "plans")
 	completedDir := filepath.Join(plansDir, "completed")
@@ -578,7 +578,7 @@ func TestRunner_BuildCodexPrompt_CompletedDir(t *testing.T) {
 	cfg := processor.Config{PlanFile: originalPath}
 	r := processor.NewWithExecutors(cfg, log, claude, codex, nil, &status.PhaseHolder{})
 
-	prompt := r.TestBuildCodexPrompt(true, "")
+	prompt := r.TestBuildCopilotPrompt(true, "")
 
 	assert.Contains(t, prompt, completedPath)
 	assert.NotContains(t, prompt, originalPath)
@@ -1719,19 +1719,19 @@ func TestRunner_Finalize_ContextCancellationPropagates(t *testing.T) {
 	assert.ErrorIs(t, err, context.Canceled)
 }
 
-func TestRunner_ExternalReviewTool_CodexEnabled(t *testing.T) {
+func TestRunner_ExternalReviewTool_CopilotEnabled(t *testing.T) {
 	log := newMockLogger("progress.txt")
 	claude := newMockExecutor([]executor.Result{
-		{Output: "done", Signal: processor.SignalCodexDone},         // codex evaluation
-		{Output: "review done", Signal: processor.SignalReviewDone}, // post-codex review loop
+		{Output: "done", Signal: processor.SignalCodexDone},         // copilot evaluation
+		{Output: "review done", Signal: processor.SignalReviewDone}, // post-external review loop
 	})
 	codex := newMockExecutor([]executor.Result{
 		{Output: "found issue"},
 	})
 
 	appCfg := testAppConfig(t)
-	// explicitly set to codex (though it's the default)
-	appCfg.ExternalReviewTool = "codex"
+	// explicitly set to copilot (the default)
+	appCfg.ExternalReviewTool = "copilot"
 
 	cfg := processor.Config{
 		Mode:          processor.ModeCodexOnly,
@@ -1743,7 +1743,7 @@ func TestRunner_ExternalReviewTool_CodexEnabled(t *testing.T) {
 	err := r.Run(t.Context())
 
 	require.NoError(t, err)
-	assert.Len(t, codex.RunCalls(), 1, "codex should be called when external_review_tool=codex")
+	assert.Len(t, codex.RunCalls(), 1, "copilot should be called when external_review_tool=copilot")
 }
 
 func TestRunner_ExternalReviewTool_None(t *testing.T) {
@@ -1769,16 +1769,16 @@ func TestRunner_ExternalReviewTool_None(t *testing.T) {
 	assert.Empty(t, codex.RunCalls(), "codex should not be called when external_review_tool=none")
 }
 
-func TestRunner_ExternalReviewTool_BackwardCompat_CodexDisabled(t *testing.T) {
+func TestRunner_ExternalReviewTool_BackwardCompat_ExternalDisabled(t *testing.T) {
 	log := newMockLogger("progress.txt")
 	claude := newMockExecutor([]executor.Result{
-		{Output: "review done", Signal: processor.SignalReviewDone}, // post-codex review loop
+		{Output: "review done", Signal: processor.SignalReviewDone}, // post-external review loop
 	})
 	codex := newMockExecutor(nil)
 
 	appCfg := testAppConfig(t)
-	// external_review_tool is "codex" (default), but CodexEnabled is false
-	appCfg.ExternalReviewTool = "codex"
+	// external_review_tool is "copilot" (default), but CodexEnabled is false
+	appCfg.ExternalReviewTool = "copilot"
 
 	cfg := processor.Config{
 		Mode:          processor.ModeCodexOnly,
@@ -1790,7 +1790,7 @@ func TestRunner_ExternalReviewTool_BackwardCompat_CodexDisabled(t *testing.T) {
 	err := r.Run(t.Context())
 
 	require.NoError(t, err)
-	assert.Empty(t, codex.RunCalls(), "codex should not be called when CodexEnabled=false (backward compat)")
+	assert.Empty(t, codex.RunCalls(), "copilot should not be called when CodexEnabled=false")
 }
 
 func TestRunner_ExternalReviewTool_Custom_Success(t *testing.T) {

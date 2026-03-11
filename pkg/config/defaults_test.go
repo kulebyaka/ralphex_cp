@@ -255,7 +255,7 @@ func TestDefaultsInstaller_installDefaultFiles_Prompts(t *testing.T) {
 	installer := &defaultsInstaller{embedFS: defaultsFS}
 	require.NoError(t, installer.installDefaultFiles(promptsDir, "defaults/prompts", "prompt"))
 
-	expectedPrompts := []string{"task.txt", "review_first.txt", "review_second.txt", "codex.txt", "make_plan.txt", "finalize.txt", "custom_review.txt", "custom_eval.txt"}
+	expectedPrompts := []string{"task.txt", "review_first.txt", "review_second.txt", "copilot_review.txt", "make_plan.txt", "finalize.txt", "custom_review.txt", "custom_eval.txt"}
 	for _, prompt := range expectedPrompts {
 		promptPath := filepath.Join(promptsDir, prompt)
 		assert.FileExists(t, promptPath, "prompt file %s should be installed", prompt)
@@ -297,7 +297,7 @@ func TestDefaultsInstaller_Install_InstallsPromptFiles(t *testing.T) {
 	require.NoError(t, installer.Install(configDir))
 
 	promptsDir := filepath.Join(configDir, "prompts")
-	expectedPrompts := []string{"task.txt", "review_first.txt", "review_second.txt", "codex.txt", "make_plan.txt", "finalize.txt", "custom_review.txt", "custom_eval.txt"}
+	expectedPrompts := []string{"task.txt", "review_first.txt", "review_second.txt", "copilot_review.txt", "make_plan.txt", "finalize.txt", "custom_review.txt", "custom_eval.txt"}
 
 	for _, prompt := range expectedPrompts {
 		promptPath := filepath.Join(promptsDir, prompt)
@@ -741,7 +741,7 @@ func TestDefaultsInstaller_FindDifferentFiles(t *testing.T) {
 
 	t.Run("marks_missing_files", func(t *testing.T) {
 		// delete one file
-		taskPath := filepath.Join(promptsDir, "codex.txt")
+		taskPath := filepath.Join(promptsDir, "copilot_review.txt")
 		require.NoError(t, os.Remove(taskPath))
 
 		different, err := installer.findDifferentFiles(promptsDir, "defaults/prompts")
@@ -750,13 +750,13 @@ func TestDefaultsInstaller_FindDifferentFiles(t *testing.T) {
 		// find the missing file in results
 		var missingFile *fileInfo
 		for i := range different {
-			if different[i].name == "codex.txt" {
+			if different[i].name == "copilot_review.txt" {
 				missingFile = &different[i]
 				break
 			}
 		}
-		require.NotNil(t, missingFile, "codex.txt should be in different files")
-		assert.True(t, missingFile.missing, "codex.txt should be marked as missing")
+		require.NotNil(t, missingFile, "copilot_review.txt should be in different files")
+		assert.True(t, missingFile.missing, "copilot_review.txt should be marked as missing")
 	})
 }
 

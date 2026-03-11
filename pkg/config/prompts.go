@@ -53,7 +53,7 @@ func (p *promptLoader) Load(localDir, globalDir string) (Prompts, error) {
 		return Prompts{}, fmt.Errorf("load review_second prompt: %w", err)
 	}
 
-	prompts.CopilotReview, err = p.loadPromptWithLocalFallback(localDir, globalDir, codexPromptFile)
+	prompts.CopilotReview, err = p.loadPromptWithLocalFallback(localDir, globalDir, copilotReviewPromptFile)
 	if err != nil {
 		return Prompts{}, fmt.Errorf("load copilot review prompt: %w", err)
 	}
